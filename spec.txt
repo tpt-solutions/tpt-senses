@@ -1,0 +1,2292 @@
+# TPT-Senses
+
+**Repository:** `tpt-senses`
+**Organisation:** TPT Solutions
+**Language:** Rust
+**License:** MIT
+**Status:** Design Specification
+**Version:** 0.1.0
+
+---
+
+# 1. Purpose
+
+`tpt-senses` is a general-purpose Rust sensory and perception foundation for TPT's cognitive, robotic, autonomous, and intelligent systems.
+
+It provides a common abstraction for acquiring, representing, processing, correlating, and delivering observations about:
+
+* the external world
+* the system's physical body
+* the system's environment
+* other entities
+* internal system state
+* simulated environments
+
+`tpt-senses` is **not** intended to replace:
+
+* hardware drivers
+* ROS / ROS 2
+* camera frameworks
+* audio codecs
+* computer-vision algorithms
+* robotics middleware
+* individual sensor SDKs
+
+Instead, it provides the abstraction layer above those systems.
+
+The central principle is:
+
+> **Sensors produce measurements. Perception produces observations. Cognition reasons about observations.**
+
+---
+
+# 2. Problem
+
+The TPT cognitive architecture is increasingly capable of reasoning, reflection, memory, planning, verification, and autonomous action.
+
+However, the architecture requires a general mechanism for receiving information about reality.
+
+Currently, sensor capabilities are fragmented across domain-specific systems:
+
+```text
+camera
+microphone
+LiDAR
+GPS
+IMU
+ROS
+computer vision
+audio processing
+robotics
+IoT
+industrial sensors
+etc.
+```
+
+These systems expose raw or semi-processed data but do not provide a unified cognitive sensory model.
+
+A cognitive system should not need to understand whether an observation originated from:
+
+* a camera
+* a LiDAR
+* a microphone
+* a radiation detector
+* a ROS topic
+* a simulation
+* a database
+* another AI
+* an internal system monitor
+
+It should receive a common representation of:
+
+```text
+what was observed
+where
+when
+by what
+with what confidence
+under what conditions
+and what the observation means
+```
+
+---
+
+# 3. Core Principle
+
+`tpt-senses` is based on a layered model:
+
+```text
+                  REALITY
+                     │
+                     ▼
+               ┌───────────┐
+               │  SENSOR   │
+               └─────┬─────┘
+                     │
+                 measurement
+                     │
+                     ▼
+               ┌───────────┐
+               │ PERCEPTION│
+               └─────┬─────┘
+                     │
+                 observation
+                     │
+                     ▼
+               ┌───────────┐
+               │ TPT-SENSES│
+               └─────┬─────┘
+                     │
+              interpreted state
+                     │
+                     ▼
+               ┌───────────┐
+               │  COGNITION│
+               │            │
+               │ tpt-anima  │
+               │ tpt-thought│
+               │ tpt-eve    │
+               └───────────┘
+```
+
+The architecture must preserve the distinction between **measurement** and **interpretation**.
+
+For example:
+
+```text
+Measurement:
+
+temperature = 83.4°C
+```
+
+is different from:
+
+```text
+Observation:
+
+engine_component.temperature_state = abnormal
+```
+
+The first is sensor data.
+
+The second is perception.
+
+The cognitive layer can then reason:
+
+```text
+"Component 17 is overheating."
+```
+
+---
+
+# 4. Design Goals
+
+## 4.1 Modality independence
+
+The system must not assume that intelligence has human-like senses.
+
+Supported modalities should include, but not be limited to:
+
+* vision
+* hearing
+* touch
+* smell
+* taste
+* proprioception
+* balance
+* temperature
+* pressure
+* force
+* torque
+* vibration
+* depth
+* LiDAR
+* radar
+* infrared
+* ultraviolet
+* multispectral sensing
+* hyperspectral sensing
+* chemical sensing
+* gas sensing
+* radiation
+* magnetic fields
+* electric fields
+* GPS/GNSS
+* inertial measurement
+* environmental sensors
+* biological sensors
+* industrial sensors
+* simulated sensors
+
+New modalities must be addable without changing the core architecture.
+
+---
+
+# 5. Non-Human Sensory Capabilities
+
+The system must explicitly support sensory capabilities beyond human biological perception.
+
+Examples:
+
+```text
+Human:
+    visible light
+    human auditory range
+    pressure
+    temperature
+```
+
+Potential machine:
+
+```text
+visible
+infrared
+ultraviolet
+thermal
+ultrasonic
+infrasound
+radio
+LiDAR
+radar
+radiation
+magnetic
+electrical
+chemical
+```
+
+The architecture must not encode assumptions such as:
+
+```text
+vision = human vision
+hearing = human hearing
+```
+
+Instead:
+
+```text
+VisionCapability {
+    spectral_range: ...
+    spatial_resolution: ...
+    temporal_resolution: ...
+}
+```
+
+and:
+
+```text
+AuditoryCapability {
+    frequency_range: ...
+    dynamic_range: ...
+    spatial_resolution: ...
+}
+```
+
+This allows configurations resembling:
+
+```text
+human
+eagle
+rabbit
+bat
+industrial robot
+drone
+agricultural robot
+spacecraft
+custom machine
+```
+
+without requiring biological imitation.
+
+These names should be treated as conceptual profiles rather than claims of biological equivalence.
+
+---
+
+# 6. Architecture
+
+```text
+┌──────────────────────────────────────────────┐
+│                  COGNITION                   │
+│                                              │
+│  tpt-thought                                │
+│  tpt-anima                                  │
+│  tpt-eve                                    │
+│  tpt-intellect                              │
+└──────────────────────▲───────────────────────┘
+                       │
+                 observations
+                       │
+┌──────────────────────┴───────────────────────┐
+│                 TPT-SENSES                    │
+│                                               │
+│  observation model                            │
+│  perception                                  │
+│  sensor registry                             │
+│  multimodal fusion                           │
+│  uncertainty                                  │
+│  provenance                                   │
+│  calibration                                  │
+│  temporal alignment                           │
+│  spatial alignment                            │
+│  event detection                              │
+│  entity association                           │
+└──────────────────────▲────────────────────────┘
+                       │
+                 measurements
+                       │
+┌──────────────────────┴────────────────────────┐
+│             EXTERNAL SYSTEMS                  │
+│                                               │
+│ ROS / ROS2                                    │
+│ tpt-cv                                        │
+│ tpt-audio                                     │
+│ tpt-voice                                     │
+│ device SDKs                                   │
+│ simulation                                    │
+│ IoT                                           │
+│ custom hardware                               │
+└──────────────────────▲────────────────────────┘
+                       │
+┌──────────────────────┴────────────────────────┐
+│                  HARDWARE                     │
+│                                               │
+│ camera / microphone / LiDAR / radar          │
+│ tactile / thermal / chemical / radiation    │
+│ GPS / IMU / force / torque / etc.            │
+└───────────────────────────────────────────────┘
+```
+
+---
+
+# 7. Relationship With Existing TPT Repositories
+
+`tpt-senses` should **consume capabilities from existing TPT repositories rather than duplicate them.**
+
+## tpt-cv
+
+`tpt-cv` remains a computer-vision foundation.
+
+Potential flow:
+
+```text
+camera
+  ↓
+tpt-cv
+  ↓
+visual features / detections
+  ↓
+tpt-senses
+  ↓
+visual observations
+```
+
+`tpt-senses` should not become a replacement for `tpt-cv`.
+
+---
+
+## tpt-audio
+
+`tpt-audio` remains an audio/media-processing foundation.
+
+Potential flow:
+
+```text
+microphone
+  ↓
+tpt-audio
+  ↓
+audio data/features
+  ↓
+tpt-senses
+  ↓
+auditory observations
+```
+
+---
+
+## tpt-voice
+
+`tpt-voice` can participate in auditory perception and speech recognition.
+
+However:
+
+> `tpt-voice` is not the definition of hearing.
+
+Hearing must be capable of representing non-speech phenomena.
+
+For example:
+
+```text
+speech
+bird call
+machinery vibration
+explosion
+ultrasound
+vehicle approaching
+alarm
+environmental noise
+```
+
+---
+
+## tpt-teleop-agri
+
+`tpt-teleop-agri` can continue assuming that a datafeed already exists.
+
+`tpt-senses` provides a common representation for those feeds.
+
+```text
+robot
+ ↓
+ROS
+ ↓
+sensor data
+ ↓
+tpt-senses
+ ↓
+tpt-teleop-agri
+```
+
+or:
+
+```text
+robot
+ ↓
+ROS
+ ↓
+sensor data
+ ↓
+tpt-senses
+ ↓
+tpt-thought
+ ↓
+decision
+ ↓
+tpt-teleop-agri
+```
+
+---
+
+# 8. ROS Integration
+
+ROS / ROS 2 should be treated as an **integration layer**, not a dependency of the core crate.
+
+Architecture:
+
+```text
+ROS
+ │
+ ├── camera topic
+ ├── LiDAR topic
+ ├── IMU topic
+ ├── GPS topic
+ ├── force topic
+ └── custom sensor topic
+       │
+       ▼
+ROS adapter
+       │
+       ▼
+tpt-senses
+```
+
+The core `tpt-senses` crate must remain usable without ROS.
+
+Potential future crates:
+
+```text
+tpt-senses
+tpt-senses-ros
+tpt-senses-ros2
+```
+
+These should only be created when justified by implementation complexity.
+
+---
+
+# 9. Sensor Model
+
+The fundamental abstraction is a `Sensor`.
+
+Conceptually:
+
+```rust
+trait Sensor {
+    type Measurement;
+
+    fn identity(&self) -> SensorId;
+
+    fn capabilities(&self) -> &SensorCapabilities;
+
+    fn read(&mut self) -> Result<Self::Measurement, SensorError>;
+}
+```
+
+Sensors should expose:
+
+* identity
+* capabilities
+* measurement type
+* timestamp
+* calibration state
+* health state
+* provenance
+* uncertainty
+
+---
+
+# 10. Sensor Capabilities
+
+A sensor should describe what it is capable of measuring.
+
+Example:
+
+```rust
+struct SensorCapabilities {
+    modalities: Vec<Modality>,
+    sampling_rate: Option<Frequency>,
+    spatial_resolution: Option<Resolution>,
+    temporal_resolution: Option<Duration>,
+    measurement_range: Option<Range>,
+    spectral_range: Option<SpectralRange>,
+}
+```
+
+Capabilities must be descriptive rather than tied to biological assumptions.
+
+---
+
+# 11. Modality
+
+Define an extensible modality model.
+
+Example:
+
+```rust
+enum Modality {
+    Visual,
+    Auditory,
+    Tactile,
+    Olfactory,
+    Gustatory,
+    Proprioceptive,
+    Vestibular,
+
+    Thermal,
+    Pressure,
+    Force,
+    Torque,
+    Vibration,
+
+    Depth,
+    Lidar,
+    Radar,
+
+    Infrared,
+    Ultraviolet,
+    Multispectral,
+    Hyperspectral,
+
+    Chemical,
+    Gas,
+    Radiation,
+
+    Magnetic,
+    Electric,
+
+    Position,
+    Orientation,
+    Acceleration,
+    Velocity,
+
+    Environmental,
+
+    Biological,
+
+    Custom(String),
+}
+```
+
+The implementation must avoid making this enum an architectural bottleneck.
+
+Custom modalities must be supported.
+
+---
+
+# 12. Measurement
+
+A measurement represents raw or minimally processed sensor output.
+
+Example:
+
+```rust
+struct Measurement {
+    sensor: SensorId,
+    modality: Modality,
+    value: MeasurementValue,
+    timestamp: Timestamp,
+    uncertainty: Option<Uncertainty>,
+    provenance: Provenance,
+}
+```
+
+Possible values include:
+
+```text
+scalar
+vector
+matrix
+image
+audio buffer
+point cloud
+spectrum
+categorical value
+structured measurement
+custom binary data
+```
+
+Large data should support zero-copy or streaming representations where practical.
+
+---
+
+# 13. Observation
+
+An observation is a semantically meaningful interpretation of one or more measurements.
+
+Example:
+
+```rust
+struct Observation {
+    id: ObservationId,
+    subject: Option<EntityId>,
+    modality: Modality,
+    property: Property,
+    value: ObservationValue,
+    confidence: Confidence,
+    timestamp: Timestamp,
+    location: Option<SpatialReference>,
+    provenance: Provenance,
+}
+```
+
+Example:
+
+```text
+subject:
+    plant_1847
+
+property:
+    possible_disease
+
+value:
+    fungal_stress
+
+confidence:
+    0.87
+```
+
+---
+
+# 14. Measurement vs Observation
+
+This distinction is fundamental.
+
+```text
+MEASUREMENT
+
+temperature = 37.4°C
+```
+
+becomes:
+
+```text
+OBSERVATION
+
+object.temperature_state = normal
+```
+
+Multiple measurements may produce one observation:
+
+```text
+camera
++
+thermal camera
++
+LiDAR
++
+spectral camera
++
+GPS
+       │
+       ▼
+    fusion
+       │
+       ▼
+Observation:
+    Plant #1847
+    location = ...
+    species = ...
+    stress_probability = ...
+```
+
+---
+
+# 15. Uncertainty
+
+No sensor should be assumed to be perfectly accurate.
+
+Every meaningful measurement/observation should support uncertainty.
+
+Possible representations:
+
+```rust
+struct Uncertainty {
+    confidence: Option<f64>,
+    standard_deviation: Option<f64>,
+    bounds: Option<(f64, f64)>,
+    distribution: Option<Distribution>,
+}
+```
+
+The architecture must distinguish:
+
+```text
+value
+confidence
+precision
+accuracy
+uncertainty
+```
+
+These are not interchangeable.
+
+---
+
+# 16. Provenance
+
+Every observation should be traceable to its source.
+
+Example:
+
+```text
+Observation
+    ↓
+Perception algorithm
+    ↓
+Measurement
+    ↓
+Sensor
+    ↓
+Hardware
+```
+
+Provenance should allow the system to answer:
+
+> "Why do we believe this?"
+
+Example:
+
+```text
+Observation:
+    obstacle_detected
+
+Sources:
+    camera_02
+    lidar_01
+
+Algorithms:
+    detector_v4
+    fusion_v2
+
+Timestamp:
+    ...
+
+Confidence:
+    0.96
+```
+
+This is especially important for `tpt-eve`, verification, debugging, and reflection.
+
+---
+
+# 17. Temporal Model
+
+Sensors operate at different frequencies.
+
+Example:
+
+```text
+GPS:       10 Hz
+LiDAR:     20 Hz
+Camera:    60 Hz
+IMU:       500 Hz
+Thermal:   30 Hz
+Chemical:  1 Hz
+```
+
+`tpt-senses` must support temporal alignment.
+
+It should preserve:
+
+* sensor timestamp
+* acquisition timestamp
+* processing timestamp
+* observation timestamp
+* latency
+* ordering
+* clock source
+
+Never silently treat asynchronous measurements as simultaneous.
+
+---
+
+# 18. Spatial Model
+
+Sensors may use different coordinate frames.
+
+For example:
+
+```text
+world
+  ↓
+robot
+  ↓
+body
+  ↓
+camera
+  ↓
+pixel
+```
+
+`tpt-senses` should support spatial references without requiring a particular robotics framework.
+
+Where available, it should integrate with external transform systems such as ROS TF.
+
+---
+
+# 19. Sensor Fusion
+
+Sensor fusion is a major responsibility of `tpt-senses`.
+
+Fusion combines multiple measurements into a more useful observation.
+
+Example:
+
+```text
+Camera:
+    object = vehicle
+    confidence = 0.81
+
+LiDAR:
+    distance = 13.2m
+
+Radar:
+    velocity = 4.1m/s
+
+GPS:
+    position = ...
+
+       ↓
+
+FUSED OBSERVATION
+
+Vehicle #27
+position = ...
+velocity = ...
+distance = 13.2m
+classification = vehicle
+confidence = 0.94
+```
+
+Fusion must preserve the underlying evidence.
+
+It must never erase provenance.
+
+---
+
+# 20. Entity Association
+
+Multiple sensors may observe the same physical entity.
+
+`tpt-senses` should support entity association:
+
+```text
+camera_01 → object A
+lidar_01  → object B
+radar_01  → object C
+```
+
+where:
+
+```text
+A ≈ B ≈ C
+```
+
+becomes:
+
+```text
+Entity #1042
+```
+
+The association itself should have confidence and provenance.
+
+---
+
+# 21. Events
+
+Not all useful sensory information is a persistent state.
+
+Sensors should be able to generate events:
+
+```text
+ObjectAppeared
+ObjectDisappeared
+ObjectMoved
+CollisionDetected
+TemperatureExceeded
+SoundDetected
+PressureChanged
+RadiationSpike
+SensorFailure
+CalibrationChanged
+EnvironmentChanged
+```
+
+Events should contain:
+
+* timestamp
+* source
+* affected entity
+* modality
+* measurements
+* confidence
+* provenance
+
+---
+
+# 22. State
+
+`tpt-senses` should support maintaining current sensory state.
+
+Example:
+
+```text
+WORLD STATE
+
+Robot:
+    position
+    orientation
+    velocity
+
+Nearby:
+    vehicle_12
+    person_8
+    plant_1847
+
+Environment:
+    temperature
+    humidity
+    light
+    radiation
+
+Robot body:
+    battery
+    motor temperatures
+    joint torque
+```
+
+State should be derived from observations rather than becoming an independent source of truth.
+
+---
+
+# 23. Internal Sensing
+
+`tpt-senses` should support sensing the system itself.
+
+This includes:
+
+```text
+battery level
+CPU utilisation
+GPU utilisation
+memory pressure
+temperature
+motor temperature
+joint position
+joint torque
+network quality
+sensor health
+actuator health
+```
+
+It may also provide interfaces for higher-level cognitive/internal observations such as:
+
+```text
+prediction error
+uncertainty
+contradiction
+attention demand
+goal conflict
+```
+
+However, cognitive state should remain owned by the appropriate cognitive repositories.
+
+`tpt-senses` provides the observation mechanism, not the cognitive interpretation.
+
+---
+
+# 24. Sensory Profiles
+
+Support configurable sensor profiles.
+
+Examples:
+
+```rust
+SensoryProfile::Human
+SensoryProfile::Robot
+SensoryProfile::Drone
+SensoryProfile::AgriculturalRobot
+SensoryProfile::IndustrialRobot
+SensoryProfile::Spacecraft
+SensoryProfile::Custom
+```
+
+Profiles should define capabilities rather than pretending to perfectly reproduce biological organisms.
+
+Example:
+
+```text
+AgriculturalRobot
+
+Visual:
+    RGB
+    multispectral
+    thermal
+
+Spatial:
+    LiDAR
+    GPS
+
+Environmental:
+    temperature
+    humidity
+    soil moisture
+
+Chemical:
+    optional gas sensors
+```
+
+---
+
+# 25. Biological Inspiration
+
+Biological organisms may be useful reference models.
+
+Examples:
+
+```text
+eagle-like visual acuity
+rabbit-like auditory sensitivity
+bat-like ultrasonic perception
+snake-like infrared sensing
+shark-like electrical sensing
+```
+
+However, these should be treated as **engineering inspiration**, not assumptions or claims of biological equivalence.
+
+The architecture should instead describe the actual measurable capability:
+
+```text
+frequency range
+spectral range
+spatial resolution
+temporal resolution
+sensitivity
+dynamic range
+```
+
+---
+
+# 26. Perception Pipeline
+
+A standard perception pipeline should support:
+
+```text
+measurement
+    ↓
+validation
+    ↓
+calibration
+    ↓
+normalisation
+    ↓
+feature extraction
+    ↓
+classification
+    ↓
+entity association
+    ↓
+sensor fusion
+    ↓
+observation
+    ↓
+world state
+```
+
+Individual stages should be optional.
+
+A simple sensor may provide:
+
+```text
+measurement → observation
+```
+
+while a complex vision pipeline may provide:
+
+```text
+image
+ → detection
+ → segmentation
+ → tracking
+ → classification
+ → fusion
+ → observation
+```
+
+---
+
+# 27. Streaming
+
+Sensors naturally produce streams.
+
+`tpt-senses` should support:
+
+```text
+SensorStream<T>
+```
+
+with:
+
+* backpressure
+* buffering
+* cancellation
+* timestamps
+* ordering
+* dropped-sample reporting
+* rate limiting
+* filtering
+
+The design should favour asynchronous Rust where appropriate.
+
+---
+
+# 28. Determinism
+
+The architecture should support deterministic replay.
+
+A recorded sensor stream should be replayable:
+
+```text
+recorded measurements
+        ↓
+tpt-senses
+        ↓
+same perception pipeline
+        ↓
+reproducible observations
+```
+
+This is important for:
+
+* testing
+* debugging
+* simulation
+* regression testing
+* robotics development
+* AI evaluation
+* verification
+
+---
+
+# 29. Recording and Replay
+
+Recording should be abstracted from the core.
+
+Potential future crate:
+
+```text
+tpt-senses-record
+```
+
+Capabilities:
+
+```text
+record
+compress
+index
+replay
+seek
+timestamp
+filter
+```
+
+The core crate should not require a particular storage format.
+
+---
+
+# 30. Simulation
+
+`tpt-senses` should work with simulated environments.
+
+Example:
+
+```text
+simulation
+    ↓
+virtual sensors
+    ↓
+tpt-senses
+    ↓
+tpt-thought
+```
+
+The cognitive system should not need to know whether its observations came from:
+
+```text
+real hardware
+simulation
+recorded data
+synthetic data
+```
+
+unless provenance explicitly exposes that distinction.
+
+---
+
+# 31. Sensor Health
+
+Sensors themselves are entities that require monitoring.
+
+Support:
+
+```text
+Online
+Offline
+Degraded
+Calibrating
+Faulted
+Unknown
+```
+
+Additional diagnostics:
+
+```text
+signal quality
+noise
+latency
+drop rate
+temperature
+calibration status
+```
+
+A cognitive system should be able to reason:
+
+```text
+"Camera confidence is low because the lens is obstructed."
+```
+
+rather than merely receiving:
+
+```text
+object confidence = 0.31
+```
+
+---
+
+# 32. Calibration
+
+Calibration must be represented explicitly.
+
+Examples:
+
+```text
+intrinsic calibration
+extrinsic calibration
+temperature calibration
+zero-point calibration
+time calibration
+sensor alignment
+```
+
+Calibration state should be part of provenance.
+
+---
+
+# 33. Security and Trust
+
+Sensor data may be untrusted.
+
+The architecture should support:
+
+```text
+source identity
+authentication status
+integrity status
+provenance
+trust metadata
+```
+
+This becomes increasingly important when observations originate from:
+
+* network devices
+* external systems
+* other agents
+* remote robots
+* third-party APIs
+
+A sensor observation should not automatically become a fact.
+
+---
+
+# 34. Observation Lifecycle
+
+A useful lifecycle is:
+
+```text
+RAW
+  ↓
+VALIDATED
+  ↓
+CALIBRATED
+  ↓
+PROCESSED
+  ↓
+CORRELATED
+  ↓
+OBSERVED
+  ↓
+FUSED
+  ↓
+CONSUMED
+  ↓
+ARCHIVED
+```
+
+Not every observation must pass through every stage.
+
+---
+
+# 35. Relationship With TPT-ANIMA
+
+`tpt-anima` should manage cognitive state, attention, agency, memory-related processes, and other higher-level mechanisms.
+
+`tpt-senses` supplies observations.
+
+Example:
+
+```text
+tpt-senses
+    │
+    │ "movement detected"
+    ▼
+tpt-anima
+    │
+    │ attention allocation
+    ▼
+tpt-thought
+```
+
+This allows attention to influence sensing.
+
+For example:
+
+```text
+normal:
+    camera = low processing
+
+interesting event:
+    camera = increase resolution
+    microphone = increase sampling
+    LiDAR = increase frequency
+```
+
+This creates a potential future **active perception** system.
+
+---
+
+# 36. Active Perception
+
+A major future capability should be active sensing.
+
+Instead of:
+
+```text
+sense → think
+```
+
+the system can perform:
+
+```text
+sense
+ ↓
+uncertainty
+ ↓
+think
+ ↓
+request additional information
+ ↓
+sensor action
+ ↓
+new observation
+```
+
+Example:
+
+```text
+"Is that a weed?"
+
+Camera confidence:
+    0.61
+
+Thought:
+    insufficient evidence
+
+Request:
+    acquire multispectral image
+
+New evidence:
+    multispectral confidence = 0.94
+
+Updated observation:
+    likely weed
+```
+
+This is an important bridge between `tpt-senses` and autonomous cognition.
+
+---
+
+# 37. Attention-Aware Sensing
+
+Sensors may expose controllable parameters:
+
+```text
+zoom
+focus
+exposure
+sampling frequency
+direction
+resolution
+spectral band
+gain
+range
+```
+
+`tpt-senses` should support representing these capabilities.
+
+Actual control should generally belong to the hardware/device layer.
+
+---
+
+# 38. Multimodal Perception
+
+The system should not treat modalities as isolated.
+
+For example:
+
+```text
+visual:
+    person detected
+
+auditory:
+    voice detected
+
+LiDAR:
+    object at 4m
+
+thermal:
+    warm body detected
+```
+
+can become:
+
+```text
+Entity #42
+
+type:
+    person
+
+location:
+    ...
+
+evidence:
+    visual
+    auditory
+    LiDAR
+    thermal
+
+confidence:
+    ...
+```
+
+---
+
+# 39. Semantic Representation
+
+Observations should be machine-readable and serialisable.
+
+Potential formats:
+
+```text
+Rust native types
+JSON
+CBOR
+MessagePack
+Arrow-compatible structures
+custom binary representation
+```
+
+The canonical representation should remain Rust-native.
+
+Serialization formats should be adapters.
+
+---
+
+# 40. No LLM Dependency
+
+`tpt-senses` must not require:
+
+* an LLM
+* a neural network
+* cloud APIs
+* OpenAI
+* Anthropic
+* OpenRouter
+* a particular AI framework
+
+Perception may optionally use machine-learning models, but the sensory foundation itself must remain independent.
+
+---
+
+# 41. No ROS Dependency
+
+ROS integration must be optional.
+
+The core crate must work with:
+
+```text
+plain Rust
+embedded systems
+desktop applications
+servers
+robotics
+simulation
+WASM where practical
+```
+
+---
+
+# 42. Suggested Crate Structure
+
+Initial repository:
+
+```text
+tpt-senses/
+├── Cargo.toml
+├── LICENSE
+├── README.md
+├── DESIGN.md
+├── CHANGELOG.md
+├── src/
+│   ├── lib.rs
+│   ├── sensor.rs
+│   ├── modality.rs
+│   ├── measurement.rs
+│   ├── observation.rs
+│   ├── event.rs
+│   ├── entity.rs
+│   ├── capability.rs
+│   ├── uncertainty.rs
+│   ├── provenance.rs
+│   ├── timestamp.rs
+│   ├── spatial.rs
+│   ├── temporal.rs
+│   ├── calibration.rs
+│   ├── health.rs
+│   ├── fusion.rs
+│   ├── stream.rs
+│   └── profile.rs
+└── tests/
+```
+
+Avoid splitting these into separate repositories prematurely.
+
+---
+
+# 43. Potential Future Crates
+
+Only create these when actual implementation complexity warrants them:
+
+```text
+tpt-senses-ros
+tpt-senses-ros2
+tpt-senses-record
+tpt-senses-sim
+tpt-senses-vision
+tpt-senses-audio
+tpt-senses-fusion
+tpt-senses-ml
+```
+
+Existing TPT repositories should be preferred where they already provide the capability.
+
+---
+
+# 44. Integration Examples
+
+## Camera
+
+```text
+Camera
+ ↓
+tpt-cv
+ ↓
+visual detection
+ ↓
+tpt-senses
+ ↓
+Observation
+```
+
+## Microphone
+
+```text
+Microphone
+ ↓
+tpt-audio
+ ↓
+audio features
+ ↓
+tpt-voice (optional)
+ ↓
+tpt-senses
+ ↓
+Observation
+```
+
+## Agricultural robot
+
+```text
+Camera
+LiDAR
+GPS
+IMU
+thermal
+multispectral
+soil sensors
+      │
+      ▼
+    ROS
+      │
+      ▼
+tpt-senses
+      │
+      ▼
+tpt-thought
+      │
+      ▼
+decision
+      │
+      ▼
+robot control
+```
+
+## Radiation sensor
+
+```text
+radiation detector
+       ↓
+measurement
+       ↓
+tpt-senses
+       ↓
+radiation observation
+       ↓
+tpt-thought
+```
+
+No human-equivalent sense is required.
+
+---
+
+# 45. Example Cognitive Loop
+
+```text
+WORLD
+  ↓
+Sensors
+  ↓
+Measurements
+  ↓
+tpt-senses
+  ↓
+Observations
+  ↓
+tpt-anima
+  ↓
+Attention
+  ↓
+tpt-thought
+  ↓
+Reasoning
+  ↓
+Decision
+  ↓
+Action
+  ↓
+WORLD
+  ↓
+New measurements
+```
+
+This creates the sensory half of the broader cognitive feedback loop.
+
+---
+
+# 46. Relationship With Thought, Reflection and Sleep
+
+`tpt-thought` should be able to consume observations during active cognition.
+
+Reflection can examine:
+
+```text
+What did I observe?
+How reliable was it?
+Was my interpretation correct?
+What evidence contradicted it?
+What predictions failed?
+```
+
+Sleep/offline processing can examine historical sensory data:
+
+```text
+sensory history
+    ↓
+pattern discovery
+    ↓
+memory consolidation
+    ↓
+model refinement
+```
+
+Therefore sensory data becomes part of the AI's experiential history without making `tpt-senses` responsible for memory.
+
+---
+
+# 47. Verification
+
+Because TPT has a strong interest in verification, sensory transformations should be inspectable.
+
+Where practical, each transformation should expose:
+
+```text
+input
+algorithm/version
+parameters
+output
+uncertainty
+provenance
+```
+
+This enables questions such as:
+
+```text
+Which measurement produced this observation?
+
+Which algorithm produced this classification?
+
+Which sensors supported this conclusion?
+
+What uncertainty existed?
+
+What changed between versions?
+```
+
+This integrates naturally with `tpt-eve` and the wider verification architecture.
+
+---
+
+# 48. Testing Strategy
+
+Testing must occur at multiple levels.
+
+## Unit tests
+
+Test:
+
+* modality handling
+* timestamps
+* uncertainty
+* provenance
+* coordinate systems
+* calibration
+* observation construction
+* event handling
+
+## Integration tests
+
+Test:
+
+```text
+sensor → measurement → observation
+```
+
+## Fusion tests
+
+Test:
+
+```text
+sensor A + sensor B → fused observation
+```
+
+## Replay tests
+
+Ensure recorded sensor streams produce deterministic results where the pipeline is designed to be deterministic.
+
+## Fault tests
+
+Simulate:
+
+```text
+missing sensors
+bad timestamps
+sensor noise
+stale data
+out-of-order messages
+calibration failure
+sensor disagreement
+```
+
+---
+
+# 49. Safety
+
+`tpt-senses` should never imply that an observation is necessarily true.
+
+The architecture must preserve uncertainty.
+
+For safety-critical systems:
+
+```text
+observation
+    ≠
+fact
+```
+
+and:
+
+```text
+high confidence
+    ≠
+certainty
+```
+
+Safety-critical decision-making should remain outside the sensory layer.
+
+---
+
+# 50. Performance
+
+The implementation must support high-frequency sensor streams.
+
+Important requirements:
+
+* minimal allocation where practical
+* zero-copy data where practical
+* asynchronous streams
+* bounded buffering
+* configurable backpressure
+* efficient timestamps
+* efficient identifiers
+* optional serialization
+* no mandatory heavyweight dependencies
+
+Large data such as:
+
+```text
+video
+audio
+point clouds
+hyperspectral imagery
+```
+
+must not be unnecessarily copied simply to construct observations.
+
+---
+
+# 51. Embedded Compatibility
+
+The architecture should remain compatible with constrained systems where practical.
+
+Avoid making:
+
+```text
+std
+heap allocation
+threads
+network access
+```
+
+mandatory for the foundational data model.
+
+Potential future support:
+
+```text
+no_std
+embedded systems
+microcontrollers
+edge devices
+```
+
+should be considered during API design.
+
+---
+
+# 52. Extensibility
+
+The system must allow future modalities without redesign.
+
+For example, if a future sensor detects:
+
+```text
+gravitational field
+quantum state
+novel chemical signature
+biological marker
+```
+
+the system should be able to represent it without modifying the fundamental observation architecture.
+
+---
+
+# 53. Core Architectural Rule
+
+The most important architectural rule is:
+
+> **Do not build the intelligence into the sensor layer.**
+
+`tpt-senses` should answer:
+
+```text
+What was measured?
+What was observed?
+Where?
+When?
+By what?
+How reliable?
+What evidence supports it?
+```
+
+`tpt-thought` should answer:
+
+```text
+What does it mean?
+What should I believe?
+What should I investigate?
+What should I do?
+```
+
+`tpt-anima` should manage appropriate cognitive state and attention mechanisms.
+
+`tpt-eve` should provide appropriate evaluation/verification.
+
+---
+
+# 54. Proposed Dependency Direction
+
+```text
+                   tpt-thought
+                       ▲
+                       │
+                   tpt-anima
+                       ▲
+                       │
+                   tpt-senses
+                       ▲
+                       │
+       ┌───────────────┼────────────────┐
+       │               │                │
+     tpt-cv        tpt-audio        robotics
+       │               │                │
+       └───────────────┼────────────────┘
+                       │
+                   hardware
+```
+
+Dependencies should generally point upward through adapters rather than forcing the core sensory abstraction to depend on every hardware ecosystem.
+
+---
+
+# 55. What `tpt-senses` Is Not
+
+`tpt-senses` is not:
+
+* a computer vision framework
+* an audio codec library
+* a speech recognition framework
+* a ROS replacement
+* a robotics operating system
+* an AI model
+* an LLM interface
+* a hardware-driver collection
+* a five-senses simulation
+* a human sensory emulator
+* a world model
+* a cognitive reasoning engine
+
+It is the **sensory/perceptual interface between measurements and cognition**.
+
+---
+
+# 56. Long-Term Vision
+
+The ultimate goal is to allow any TPT intelligent system to operate with arbitrary sensory capabilities.
+
+A future agent could have:
+
+```text
+VISION
+    RGB
+    infrared
+    ultraviolet
+    multispectral
+
+AUDITION
+    10 Hz → 100 kHz
+
+SPATIAL
+    LiDAR
+    radar
+    depth
+
+CHEMICAL
+    gases
+    compounds
+
+PHYSICAL
+    temperature
+    pressure
+    force
+    vibration
+
+ELECTROMAGNETIC
+    magnetic
+    electric
+
+RADIATION
+    ionising radiation
+
+POSITION
+    GPS
+    IMU
+    SLAM
+
+INTERNAL
+    battery
+    motors
+    temperature
+    hardware health
+```
+
+Yet the cognitive architecture sees all of this through one fundamental concept:
+
+```text
+                 OBSERVATION
+```
+
+This creates a system that is not constrained to human perception.
+
+---
+
+# 57. Example End-to-End Architecture
+
+```text
+                         REALITY
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+       Camera           Microphone          LiDAR
+          │                 │                 │
+       tpt-cv           tpt-audio           ROS
+          │                 │                 │
+          └─────────────────┼─────────────────┘
+                            │
+                       tpt-senses
+                            │
+              ┌─────────────┼─────────────┐
+              │             │             │
+         observation     event          state
+              │             │             │
+              └─────────────┼─────────────┘
+                            │
+                        tpt-anima
+                            │
+                     attention/state
+                            │
+                        tpt-thought
+                            │
+               ┌────────────┼────────────┐
+               │            │            │
+            reasoning    reflection    planning
+               │            │            │
+               └────────────┼────────────┘
+                            │
+                          action
+                            │
+                       robot/system
+                            │
+                            ▼
+                          WORLD
+```
+
+---
+
+# 58. Initial MVP
+
+The first implementation should **not** attempt to implement every sensor.
+
+The MVP should establish the abstraction.
+
+### Phase 1
+
+Implement:
+
+```text
+SensorId
+Modality
+SensorCapabilities
+Measurement
+Observation
+ObservationValue
+Timestamp
+Uncertainty
+Provenance
+SensorHealth
+Sensor trait
+```
+
+### Phase 2
+
+Implement:
+
+```text
+Sensor streams
+events
+spatial references
+temporal alignment
+calibration metadata
+```
+
+### Phase 3
+
+Implement:
+
+```text
+observation fusion
+entity association
+world-state representation
+```
+
+### Phase 4
+
+Implement adapters for existing TPT projects:
+
+```text
+tpt-cv
+tpt-audio
+tpt-voice
+tpt-teleop-agri
+```
+
+### Phase 5
+
+Implement external integrations:
+
+```text
+ROS 2
+simulation
+record/replay
+```
+
+### Phase 6
+
+Implement advanced perception:
+
+```text
+active perception
+attention-aware sensing
+multimodal fusion
+adaptive sensor selection
+```
+
+---
+
+# 59. Success Criteria
+
+`tpt-senses` is successful when:
+
+1. A new sensor can be integrated without modifying `tpt-thought`.
+2. A new modality can be introduced without redesigning the core.
+3. ROS can provide measurements without becoming a core dependency.
+4. Existing TPT media repositories can contribute perception capabilities without being absorbed into `tpt-senses`.
+5. Observations retain uncertainty and provenance.
+6. Multiple sensors can be fused into a common observation.
+7. Real and simulated sensors can use the same cognitive interface.
+8. Internal system sensors can use the same observation model.
+9. The architecture supports sensory capabilities beyond human perception.
+10. `tpt-thought` can reason over observations without knowing the underlying hardware.
+
+---
+
+# 60. Final Principle
+
+The fundamental abstraction of `tpt-senses` is not:
+
+```text
+SEE
+HEAR
+TOUCH
+SMELL
+TASTE
+```
+
+It is:
+
+```text
+                    MEASURE
+                       ↓
+                    PERCEIVE
+                       ↓
+                   OBSERVE
+                       ↓
+                   CORRELATE
+                       ↓
+                    INFORM
+                       ↓
+                   THINK
+```
+
+The system should therefore be capable of giving an intelligent agent senses that no human possesses.
+
+A human might see visible light.
+
+A TPT autonomous system might see:
+
+```text
+visible
+infrared
+ultraviolet
+thermal
+multispectral
+```
+
+A human might hear ordinary environmental sound.
+
+A TPT system might perceive:
+
+```text
+infrasound
+ultrasound
+directional acoustic fields
+machine vibration
+```
+
+A human cannot directly perceive ionising radiation.
+
+A TPT system can.
+
+The cognitive architecture does not need to care whether an observation corresponds to a biological sense.
+
+It only needs to know:
+
+> **Something has been measured, something has been perceived, and here is the evidence, uncertainty, provenance, time, and context required to reason about it.**
+
+That is the role of `tpt-senses`.
