@@ -174,7 +174,7 @@ Reviewed against the threat of untrusted sensor and network data (spec §33):
 | Forged trust or lifecycle state in a document | Not prevented by the format. Trust is data, not proof. Authentication and integrity checks must come from the adapter, and `ValidationStage` rejects known-bad trust. |
 | Quadratic cost in `associate` | Open. Cost grows with the square of the observation count. Callers must bound the input window. |
 | Unbounded growth in `Recording` | Open by design. A recording is a caller-owned log. Callers must bound it or use a sink with a limit. |
-| Panics on hostile input | Audited by reading the non-test source. Constructors and stream paths return `Option`, `Result` or a counted drop. Indexing is guarded by construction (every association group has a member; `fuse` rejects empty input). Two caller-controlled cases remain: `associate` overflows if `first_id` is near `u64::MAX` (documented), and a very large buffer capacity aborts on allocation. Fuzzing has not been done. |
+| Panics on hostile input | Audited by reading the non-test source. Constructors and stream paths return `Option`, `Result` or a counted drop. Indexing is guarded by construction (every association group has a member; `fuse` rejects empty input). Two caller-controlled cases remain: `associate` overflows if `first_id` is near `u64::MAX` (documented), and a very large buffer capacity aborts on allocation. Deterministic fuzz-style tests (random and mutated bytes through the JSON and CBOR decoders) run in the test suite. Coverage-guided fuzzing has not been done. |
 | Timing or side channels | Out of scope for this crate. |
 
 An independent review is still needed before the 0.1.0 release.

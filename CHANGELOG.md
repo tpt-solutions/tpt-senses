@@ -40,6 +40,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `fuse_presence`: multimodal fusion of boolean detections, pooled by odds, with independence and
   an even prior recorded in provenance.
 - Fault tests for missing and faulted sensors.
+- Deterministic fuzz-style tests of the JSON and CBOR decoders, and property tests of the bounded
+  queue and reorder buffer.
+- `throughput` example: a timing baseline for the stream path.
 
 ### Changed
 - `MeasurementValue::Matrix`, `Image`, `Audio` and `Spectrum` now wrap private-field structs with
