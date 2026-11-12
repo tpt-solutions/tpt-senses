@@ -10,6 +10,121 @@ use crate::{Frequency, Modality, Provenance, SensorId, Timestamp, Uncertainty};
 /// as video frames or point clouds can be shared between pipeline stages without duplication.
 pub type SharedBuffer<T> = Arc<[T]>;
 
+/// A row-major matrix. Its element count is checked at construction, so `rows * cols` always
+/// equals the number of values. Build with [`MeasurementValue::matrix`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct Matrix {
+    rows: usize,
+    cols: usize,
+    data: Vec<f64>,
+}
+
+impl Matrix {
+    /// Number of rows.
+    #[must_use]
+    pub const fn rows(&self) -> usize {
+        self.rows
+    }
+
+    /// Number of columns.
+    #[must_use]
+    pub const fn cols(&self) -> usize {
+        self.cols
+    }
+
+    /// The values, row-major.
+    #[must_use]
+    pub fn data(&self) -> &[f64] {
+        &self.data
+    }
+}
+
+/// An image or video frame. Its byte count is checked at construction. Build with
+/// [`MeasurementValue::image`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct Image {
+    width: u32,
+    height: u32,
+    channels: u8,
+    data: SharedBuffer<u8>,
+}
+
+impl Image {
+    /// Width in pixels.
+    #[must_use]
+    pub const fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// Height in pixels.
+    #[must_use]
+    pub const fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// Channels per pixel.
+    #[must_use]
+    pub const fn channels(&self) -> u8 {
+        self.channels
+    }
+
+    /// The bytes, row-major and interleaved.
+    #[must_use]
+    pub fn data(&self) -> &[u8] {
+        &self.data
+    }
+}
+
+/// An audio buffer whose sample count is a whole number of frames. Build with
+/// [`MeasurementValue::audio`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct Audio {
+    sample_rate: Frequency,
+    channels: u16,
+    samples: SharedBuffer<f32>,
+}
+
+impl Audio {
+    /// Sample rate.
+    #[must_use]
+    pub const fn sample_rate(&self) -> Frequency {
+        self.sample_rate
+    }
+
+    /// Number of channels (at least one).
+    #[must_use]
+    pub const fn channels(&self) -> u16 {
+        self.channels
+    }
+
+    /// The samples, interleaved when there is more than one channel.
+    #[must_use]
+    pub fn samples(&self) -> &[f32] {
+        &self.samples
+    }
+}
+
+/// A spectrum with one intensity per band. Build with [`MeasurementValue::spectrum`].
+#[derive(Clone, Debug, PartialEq)]
+pub struct Spectrum {
+    wavelengths_nm: Vec<f64>,
+    intensities: Vec<f64>,
+}
+
+impl Spectrum {
+    /// Band centres in nanometres.
+    #[must_use]
+    pub fn wavelengths_nm(&self) -> &[f64] {
+        &self.wavelengths_nm
+    }
+
+    /// Intensity per band.
+    #[must_use]
+    pub fn intensities(&self) -> &[f64] {
+        &self.intensities
+    }
+}
+
 /// The payload of a measurement.
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
@@ -24,43 +139,15 @@ pub enum MeasurementValue {
     /// A vector of numbers.
     Vector(Vec<f64>),
     /// A row-major matrix. Built with [`MeasurementValue::matrix`].
-    Matrix {
-        /// Number of rows.
-        rows: usize,
-        /// Number of columns.
-        cols: usize,
-        /// `rows * cols` values, row-major.
-        data: Vec<f64>,
-    },
+    Matrix(Matrix),
     /// An image or video frame. Built with [`MeasurementValue::image`].
-    Image {
-        /// Width in pixels.
-        width: u32,
-        /// Height in pixels.
-        height: u32,
-        /// Channels per pixel.
-        channels: u8,
-        /// `width * height * channels` bytes, row-major, interleaved.
-        data: SharedBuffer<u8>,
-    },
-    /// An audio buffer. Samples are interleaved when `channels > 1`.
-    Audio {
-        /// Sample rate.
-        sample_rate: Frequency,
-        /// Number of channels.
-        channels: u16,
-        /// Samples.
-        samples: SharedBuffer<f32>,
-    },
+    Image(Image),
+    /// An audio buffer. Built with [`MeasurementValue::audio`].
+    Audio(Audio),
     /// A point cloud as `[x, y, z]` points.
     PointCloud(SharedBuffer<[f32; 3]>),
     /// A spectrum. Built with [`MeasurementValue::spectrum`].
-    Spectrum {
-        /// Band centres in nanometres.
-        wavelengths_nm: Vec<f64>,
-        /// Intensity per band.
-        intensities: Vec<f64>,
-    },
+    Spectrum(Spectrum),
     /// A categorical value, e.g. a detected class label.
     Categorical(String),
     /// A named collection of values.
@@ -78,7 +165,11 @@ impl MeasurementValue {
     /// Creates a matrix. Returns `None` if `data.len() != rows * cols`.
     #[must_use]
     pub fn matrix(rows: usize, cols: usize, data: Vec<f64>) -> Option<Self> {
-        (rows.checked_mul(cols) == Some(data.len())).then_some(Self::Matrix { rows, cols, data })
+        (rows.checked_mul(cols) == Some(data.len())).then_some(Self::Matrix(Matrix {
+            rows,
+            cols,
+            data,
+        }))
     }
 
     /// Creates an image. Returns `None` if the buffer length does not match the dimensions.
@@ -87,12 +178,12 @@ impl MeasurementValue {
         let expected = (width as usize)
             .checked_mul(height as usize)?
             .checked_mul(channels as usize)?;
-        (expected == data.len()).then_some(Self::Image {
+        (expected == data.len()).then_some(Self::Image(Image {
             width,
             height,
             channels,
             data,
-        })
+        }))
     }
 
     /// Creates an audio buffer. Returns `None` if `channels` is zero or the sample count is not a
@@ -103,20 +194,20 @@ impl MeasurementValue {
         channels: u16,
         samples: SharedBuffer<f32>,
     ) -> Option<Self> {
-        (channels > 0 && samples.len() % usize::from(channels) == 0).then_some(Self::Audio {
+        (channels > 0 && samples.len() % usize::from(channels) == 0).then_some(Self::Audio(Audio {
             sample_rate,
             channels,
             samples,
-        })
+        }))
     }
 
     /// Creates a spectrum. Returns `None` if the two vectors differ in length.
     #[must_use]
     pub fn spectrum(wavelengths_nm: Vec<f64>, intensities: Vec<f64>) -> Option<Self> {
-        (wavelengths_nm.len() == intensities.len()).then_some(Self::Spectrum {
+        (wavelengths_nm.len() == intensities.len()).then_some(Self::Spectrum(Spectrum {
             wavelengths_nm,
             intensities,
-        })
+        }))
     }
 }
 
@@ -255,34 +346,26 @@ impl From<MeasurementValue> for MeasurementValueWire {
         match value {
             MeasurementValue::Scalar(v) => Self::Scalar(v),
             MeasurementValue::Vector(v) => Self::Vector(v),
-            MeasurementValue::Matrix { rows, cols, data } => Self::Matrix { rows, cols, data },
-            MeasurementValue::Image {
-                width,
-                height,
-                channels,
-                data,
-            } => Self::Image {
-                width,
-                height,
-                channels,
-                data,
+            MeasurementValue::Matrix(m) => Self::Matrix {
+                rows: m.rows,
+                cols: m.cols,
+                data: m.data,
             },
-            MeasurementValue::Audio {
-                sample_rate,
-                channels,
-                samples,
-            } => Self::Audio {
-                sample_rate_hz: sample_rate.hz(),
-                channels,
-                samples,
+            MeasurementValue::Image(i) => Self::Image {
+                width: i.width,
+                height: i.height,
+                channels: i.channels,
+                data: i.data,
+            },
+            MeasurementValue::Audio(a) => Self::Audio {
+                sample_rate_hz: a.sample_rate.hz(),
+                channels: a.channels,
+                samples: a.samples,
             },
             MeasurementValue::PointCloud(points) => Self::PointCloud(points),
-            MeasurementValue::Spectrum {
-                wavelengths_nm,
-                intensities,
-            } => Self::Spectrum {
-                wavelengths_nm,
-                intensities,
+            MeasurementValue::Spectrum(sp) => Self::Spectrum {
+                wavelengths_nm: sp.wavelengths_nm,
+                intensities: sp.intensities,
             },
             MeasurementValue::Categorical(c) => Self::Categorical(c),
             MeasurementValue::Structured(fields) => Self::Structured(
@@ -299,6 +382,22 @@ impl From<MeasurementValue> for MeasurementValueWire {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn accessors_report_the_validated_shape() {
+        let MeasurementValue::Matrix(m) =
+            MeasurementValue::matrix(2, 3, alloc::vec![0.0; 6]).unwrap()
+        else {
+            panic!("expected a matrix")
+        };
+        assert_eq!((m.rows(), m.cols(), m.data().len()), (2, 3, 6));
+        let MeasurementValue::Spectrum(sp) =
+            MeasurementValue::spectrum(alloc::vec![1.0], alloc::vec![2.0]).unwrap()
+        else {
+            panic!("expected a spectrum")
+        };
+        assert_eq!(sp.intensities(), &[2.0]);
+    }
 
     #[test]
     fn matrix_validates_shape() {
