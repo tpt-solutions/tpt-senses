@@ -8,6 +8,7 @@
     reason = "test arithmetic on small trial indices and a seeded PRNG"
 )]
 
+use tpt_senses::StandardDeviation;
 use tpt_senses::prelude::*;
 use tpt_senses::{
     Algorithm, AssociationConfig, CalibrationKind, CalibrationRecord, CalibrationStage,
@@ -139,7 +140,7 @@ fn range_reading(
     );
     if let Some(s) = sigma {
         o = o.with_uncertainty(Uncertainty {
-            standard_deviation: Some(s),
+            standard_deviation: StandardDeviation::new(s),
             ..Default::default()
         });
     }
@@ -515,10 +516,19 @@ fn movement_is_not_inferred_across_frames() {
 // ---- Uncertainty-aware pipeline stage -------------------------------------------------------
 
 #[test]
-fn validation_rejects_invalid_uncertainty() {
-    let bad = range_reading(80, 1, 1.0, Some(-1.0), mono(0));
+fn negative_uncertainty_cannot_reach_the_pipeline() {
+    // A negative standard deviation is refused when the value is built, so there is nothing
+    // invalid left for a validation stage to reject.
+    assert!(StandardDeviation::new(-1.0).is_none());
+    let reading = range_reading(80, 1, 1.0, Some(-1.0), mono(0));
+    assert!(
+        reading
+            .uncertainty()
+            .and_then(|u| u.standard_deviation)
+            .is_none()
+    );
     let pipeline = Pipeline::new().with_stage(ValidationStage::new(conf(0.0)));
-    assert!(pipeline.run(bad).is_err());
+    assert!(pipeline.run(reading).is_ok());
 }
 
 // ---- Sensor noise (fault injection, seeded for reproducibility) -----------------------------
@@ -590,7 +600,8 @@ fn fusing_noisy_sensors_beats_the_noisy_imprecise_one() {
             .uncertainty()
             .unwrap()
             .standard_deviation
-            .unwrap();
+            .unwrap()
+            .get();
         assert!(sd <= sigma_precise + 1e-12);
     }
     assert!(

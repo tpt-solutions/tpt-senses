@@ -185,11 +185,6 @@ impl Stage for ValidationStage {
         if observation.trust().is_known_bad() {
             return StageOutcome::Reject("source is known to be untrusted or corrupted".into());
         }
-        if let Some(u) = observation.uncertainty() {
-            if !u.is_valid() {
-                return StageOutcome::Reject("uncertainty is not finite and non-negative".into());
-            }
-        }
         if observation.confidence() < self.min_confidence {
             return StageOutcome::Reject(format!(
                 "confidence {} below minimum {}",

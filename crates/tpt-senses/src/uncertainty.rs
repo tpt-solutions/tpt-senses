@@ -130,16 +130,39 @@ pub enum Distribution {
     Unknown,
 }
 
+/// A standard deviation: finite and non-negative. Build with [`StandardDeviation::new`].
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "f64", into = "f64")
+)]
+pub struct StandardDeviation(f64);
+
+impl StandardDeviation {
+    /// Creates a standard deviation. Returns `None` unless `value` is finite and non-negative.
+    #[must_use]
+    pub fn new(value: f64) -> Option<Self> {
+        (value.is_finite() && value >= 0.0).then_some(Self(value))
+    }
+
+    /// The standard deviation, in the measurement's unit.
+    #[must_use]
+    pub const fn get(self) -> f64 {
+        self.0
+    }
+}
+
 /// Quantified uncertainty of a measurement or observation. All parts are optional.
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
-    serde(try_from = "UncertaintyWire", into = "UncertaintyWire")
+    serde(from = "UncertaintyWire", into = "UncertaintyWire")
 )]
 pub struct Uncertainty {
-    /// Standard deviation of the value. Should be finite and non-negative; see [`Self::is_valid`].
-    pub standard_deviation: Option<f64>,
+    /// Standard deviation of the value. Finite and non-negative by construction.
+    pub standard_deviation: Option<StandardDeviation>,
     /// Repeatability.
     pub precision: Option<Precision>,
     /// Closeness to truth.
@@ -148,15 +171,6 @@ pub struct Uncertainty {
     pub bounds: Option<Bounds>,
     /// Assumed error distribution.
     pub distribution: Option<Distribution>,
-}
-
-impl Uncertainty {
-    /// Returns `true` if every present numeric field is finite and non-negative.
-    #[must_use]
-    pub fn is_valid(&self) -> bool {
-        self.standard_deviation
-            .is_none_or(|sd| sd.is_finite() && sd >= 0.0)
-    }
 }
 
 #[cfg(feature = "serde")]
@@ -169,7 +183,7 @@ struct BoundsWire {
 #[cfg(feature = "serde")]
 #[derive(serde::Serialize, serde::Deserialize)]
 struct UncertaintyWire {
-    standard_deviation: Option<f64>,
+    standard_deviation: Option<StandardDeviation>,
     precision: Option<Precision>,
     accuracy: Option<Accuracy>,
     bounds: Option<Bounds>,
@@ -181,7 +195,8 @@ struct UncertaintyWire {
 #[cfg(feature = "serde")]
 mod serde_support {
     use super::{
-        Accuracy, Bounds, BoundsWire, Confidence, Precision, Uncertainty, UncertaintyWire,
+        Accuracy, Bounds, BoundsWire, Confidence, Precision, StandardDeviation, Uncertainty,
+        UncertaintyWire,
     };
 
     impl TryFrom<f64> for Confidence {
@@ -214,6 +229,18 @@ mod serde_support {
             Self::new(value).ok_or("accuracy must be finite and non-negative")
         }
     }
+    impl TryFrom<f64> for StandardDeviation {
+        type Error = &'static str;
+        fn try_from(value: f64) -> Result<Self, Self::Error> {
+            Self::new(value).ok_or("standard deviation must be finite and non-negative")
+        }
+    }
+    impl From<StandardDeviation> for f64 {
+        fn from(value: StandardDeviation) -> Self {
+            value.get()
+        }
+    }
+
     impl From<Accuracy> for f64 {
         fn from(value: Accuracy) -> Self {
             value.get()
@@ -235,20 +262,14 @@ mod serde_support {
         }
     }
 
-    impl TryFrom<UncertaintyWire> for Uncertainty {
-        type Error = &'static str;
-        fn try_from(wire: UncertaintyWire) -> Result<Self, Self::Error> {
-            let u = Uncertainty {
+    impl From<UncertaintyWire> for Uncertainty {
+        fn from(wire: UncertaintyWire) -> Self {
+            Uncertainty {
                 standard_deviation: wire.standard_deviation,
                 precision: wire.precision,
                 accuracy: wire.accuracy,
                 bounds: wire.bounds,
                 distribution: wire.distribution,
-            };
-            if u.is_valid() {
-                Ok(u)
-            } else {
-                Err("standard deviation must be finite and non-negative")
             }
         }
     }
@@ -295,17 +316,11 @@ mod tests {
     }
 
     #[test]
-    fn uncertainty_validity() {
-        let ok = Uncertainty {
-            standard_deviation: Some(0.2),
-            ..Default::default()
-        };
-        let bad = Uncertainty {
-            standard_deviation: Some(-1.0),
-            ..Default::default()
-        };
-        assert!(ok.is_valid());
-        assert!(!bad.is_valid());
-        assert!(Uncertainty::default().is_valid());
+    fn standard_deviation_must_be_finite_and_non_negative() {
+        assert!(StandardDeviation::new(0.0).is_some());
+        assert!(StandardDeviation::new(-1.0).is_none());
+        assert!(StandardDeviation::new(f64::NAN).is_none());
+        assert!(StandardDeviation::new(f64::INFINITY).is_none());
+        assert_eq!(Uncertainty::default().standard_deviation, None);
     }
 }

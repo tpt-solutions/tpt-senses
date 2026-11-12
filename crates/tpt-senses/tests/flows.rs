@@ -3,6 +3,7 @@
 //! "tpt-cv", "tpt-audio", ROS, or detector side) and checks that the core turns its output into
 //! observations that keep their provenance, uncertainty and lifecycle rules.
 
+use tpt_senses::StandardDeviation;
 use tpt_senses::prelude::*;
 use tpt_senses::{
     Adapter, AdapterError, AttentionHint, CalibrationKind, CalibrationRecord, CalibrationStage,
@@ -243,10 +244,13 @@ fn robot_position_fix_with_frame_and_uncertainty() {
         [512.4, 88.1, 0.0],
     ))
     .with_uncertainty(Uncertainty {
-        standard_deviation: Some(1.5),
+        standard_deviation: StandardDeviation::new(1.5),
         ..Default::default()
     });
-    assert_eq!(gps.uncertainty().unwrap().standard_deviation, Some(1.5));
+    assert_eq!(
+        gps.uncertainty().unwrap().standard_deviation,
+        StandardDeviation::new(1.5)
+    );
     assert_eq!(gps.location().unwrap().frame, CoordinateFrame::World);
 }
 

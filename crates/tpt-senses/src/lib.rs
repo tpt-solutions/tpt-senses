@@ -131,7 +131,9 @@ pub use temporal::{
 };
 pub use timestamp::{ClockMismatch, ClockSource, Duration, Frequency, Timestamp};
 pub use trust::{AuthenticationStatus, IntegrityStatus, SourceIdentity, TrustLevel, TrustMetadata};
-pub use uncertainty::{Accuracy, Bounds, Confidence, Distribution, Precision, Uncertainty};
+pub use uncertainty::{
+    Accuracy, Bounds, Confidence, Distribution, Precision, StandardDeviation, Uncertainty,
+};
 pub use world::{EntityView, WorldState};
 
 /// Convenience re-exports of the most commonly used types.

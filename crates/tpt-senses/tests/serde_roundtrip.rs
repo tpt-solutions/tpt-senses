@@ -4,6 +4,7 @@
 
 use serde_json::{Value, json};
 use std::sync::Arc;
+use tpt_senses::StandardDeviation;
 use tpt_senses::prelude::*;
 
 use tpt_senses::{
@@ -41,7 +42,7 @@ fn full_observation() -> Observation {
     )
     .with_subject(EntityId::new(27))
     .with_uncertainty(Uncertainty {
-        standard_deviation: Some(0.2),
+        standard_deviation: StandardDeviation::new(0.2),
         bounds: Bounds::new(0.5, 1.5),
         ..Default::default()
     })
@@ -127,7 +128,7 @@ fn identifiers_and_timestamps_round_trip() {
 #[test]
 fn valid_uncertainty_round_trips_on_its_own() {
     let u = Uncertainty {
-        standard_deviation: Some(0.0),
+        standard_deviation: StandardDeviation::new(0.0),
         bounds: Bounds::new(-1.0, 1.0),
         ..Default::default()
     };

@@ -5,6 +5,7 @@
 use std::sync::Arc;
 
 use serde_json::{Value, json};
+use tpt_senses::StandardDeviation;
 use tpt_senses::prelude::*;
 use tpt_senses::{
     Bounds, Confidence, Frequency, Measurement, MeasurementValue, Uncertainty, from_cbor, to_cbor,
@@ -25,7 +26,7 @@ fn observation() -> Observation {
         Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(2))),
     )
     .with_uncertainty(Uncertainty {
-        standard_deviation: Some(0.1),
+        standard_deviation: StandardDeviation::new(0.1),
         bounds: Bounds::new(37.0, 37.8),
         ..Default::default()
     })

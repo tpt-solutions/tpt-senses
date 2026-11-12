@@ -1,6 +1,7 @@
 //! Integration tests for the core data model: sensor → measurement → observation, plus
 //! the cross-cutting rules from the spec (provenance, uncertainty, no silent fact-making).
 
+use tpt_senses::StandardDeviation;
 use tpt_senses::prelude::*;
 use tpt_senses::{
     Algorithm, Bounds, Distribution, Duration, Frequency, Range, Resolution, SensorCapabilities,
@@ -93,12 +94,11 @@ fn sensor_errors_propagate() {
 #[test]
 fn measurement_uncertainty_is_carried_into_observation() {
     let uncertainty = Uncertainty {
-        standard_deviation: Some(0.1),
+        standard_deviation: StandardDeviation::new(0.1),
         bounds: Bounds::new(37.0, 37.8),
         distribution: Some(Distribution::Gaussian),
         ..Default::default()
     };
-    assert!(uncertainty.is_valid());
 
     let measurement = Measurement::new(
         SensorId::new(5),

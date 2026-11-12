@@ -15,7 +15,7 @@ use alloc::vec::Vec;
 use crate::{
     Algorithm, ClockMismatch, Confidence, Duration, Modality, Observation, ObservationId,
     ObservationState, ObservationValue, Origin, Property, Provenance, ProvenanceStep, SensorId,
-    Uncertainty, simultaneous,
+    StandardDeviation, Uncertainty, simultaneous,
 };
 
 /// One scalar input to a fusion strategy.
@@ -184,7 +184,10 @@ pub fn fuse(
         scalars.push(ScalarInput {
             value: *value,
             confidence: input.confidence().get(),
-            sigma: input.uncertainty().and_then(|u| u.standard_deviation),
+            sigma: input
+                .uncertainty()
+                .and_then(|u| u.standard_deviation)
+                .map(StandardDeviation::get),
         });
     }
 
@@ -249,6 +252,7 @@ pub fn fuse(
         provenance,
     );
     if let Some(sd) = sigma {
+        let sd = StandardDeviation::new(sd).ok_or(FusionError::StrategyFailed)?;
         observation = observation.with_uncertainty(Uncertainty {
             standard_deviation: Some(sd),
             ..Uncertainty::default()
@@ -445,7 +449,7 @@ mod tests {
         );
         if let Some(s) = sigma {
             o = o.with_uncertainty(Uncertainty {
-                standard_deviation: Some(s),
+                standard_deviation: StandardDeviation::new(s),
                 ..Default::default()
             });
         }
@@ -479,7 +483,8 @@ mod tests {
             .uncertainty()
             .unwrap()
             .standard_deviation
-            .unwrap();
+            .unwrap()
+            .get();
         assert!(sd <= 0.1 + 1e-9);
     }
 
