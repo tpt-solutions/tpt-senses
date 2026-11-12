@@ -1,7 +1,7 @@
 # Contributing to tpt-senses
 
 Thanks for your interest in `tpt-senses`. Contributions are accepted through **issues only**: bug
-reports, feature requests and questions. Please do not open pull requests.
+reports, feature requests and questions. Please do not open pull requests..
 
 ## Reporting a bug or requesting a feature
 
