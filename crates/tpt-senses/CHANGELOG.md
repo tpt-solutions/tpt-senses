@@ -49,6 +49,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Doc-test examples on the key types: `Observation`, `Measurement`, `Uncertainty`, `Confidence`,
   `Provenance`, `Timestamp` and `fuse`.
+- CI job that runs `cargo publish --dry-run` for `tpt-senses`.
 - `ports` module: `ObservationSink` (observations out to cognition) and `AttentionSource` (attention
   hints in), with `Vec` implementations. Neither depends on another TPT crate.
 - `explain` module: `explain(&Observation)` returns an inspectable `Explanation` of the provenance
