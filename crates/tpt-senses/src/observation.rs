@@ -112,6 +112,30 @@ impl std::error::Error for LifecycleError {}
 ///
 /// An observation is evidence, not fact: it carries a [`Confidence`], its [`Provenance`] and a
 /// lifecycle state. Nothing in this type marks it as true.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::prelude::*;
+/// use tpt_senses::StandardDeviation;
+///
+/// let range = Observation::new(
+///     ObservationId::new(1),
+///     Modality::Depth,
+///     Property::new("range_m"),
+///     ObservationValue::Scalar(12.5),
+///     Confidence::new(0.9).unwrap(),
+///     Timestamp::new(1_000_000, ClockSource::Monotonic),
+///     Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(7))),
+/// )
+/// .with_uncertainty(
+///     Uncertainty::new().with_standard_deviation(StandardDeviation::new(0.05).unwrap()),
+/// );
+///
+/// // New observations start as raw evidence, not as facts.
+/// assert_eq!(range.state(), ObservationState::Raw);
+/// assert_eq!(range.confidence().get(), 0.9);
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Observation {

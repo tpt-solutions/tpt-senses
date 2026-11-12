@@ -47,6 +47,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Presence fusion, a `cbor` feature, and private-field measurement wrappers were added earlier in
   this release cycle; see the sections above.
 
+- Doc-test examples on the key types: `Observation`, `Measurement`, `Uncertainty`, `Confidence`,
+  `Provenance`, `Timestamp` and `fuse`.
 - `ports` module: `ObservationSink` (observations out to cognition) and `AttentionSource` (attention
   hints in), with `Vec` implementations. Neither depends on another TPT crate.
 - `explain` module: `explain(&Observation)` returns an inspectable `Explanation` of the provenance

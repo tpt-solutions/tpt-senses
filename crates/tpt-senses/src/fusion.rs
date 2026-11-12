@@ -170,6 +170,36 @@ pub enum FusionError {
 ///
 /// Returns [`FusionError`] if the inputs are empty, mismatched, not scalar, not simultaneous
 /// within `config.time_tolerance`, or cannot be combined by `strategy`.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::prelude::*;
+/// use tpt_senses::{Duration, FusionConfig, InverseVariance, StandardDeviation, fuse};
+///
+/// let range = |id: u64, metres: f64, sigma: f64| {
+///     Observation::new(
+///         ObservationId::new(id),
+///         Modality::Depth,
+///         Property::new("range_m"),
+///         ObservationValue::Scalar(metres),
+///         Confidence::new(0.9).unwrap(),
+///         Timestamp::new(5_000, ClockSource::Monotonic),
+///         Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(id))),
+///     )
+///     .with_uncertainty(
+///         Uncertainty::new().with_standard_deviation(StandardDeviation::new(sigma).unwrap()),
+///     )
+/// };
+///
+/// let inputs = [range(1, 10.0, 0.1), range(2, 10.4, 0.4)];
+/// let config = FusionConfig::new(Duration::from_millis(1), 1.0);
+/// let fused = fuse(&inputs, ObservationId::new(100), &InverseVariance, &config).unwrap();
+///
+/// // The fused observation keeps both inputs in its provenance; nothing is erased.
+/// assert_eq!(fused.observation.provenance().sensors().count(), 2);
+/// assert!(fused.disagreement.is_none());
+/// ```
 pub fn fuse(
     inputs: &[Observation],
     id: ObservationId,

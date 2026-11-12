@@ -73,6 +73,21 @@ pub enum ProvenanceStep {
 }
 
 /// The full, ordered source chain of a measurement or observation.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::{Algorithm, Origin, Provenance, ProvenanceStep, SensorId};
+///
+/// let provenance = Provenance::new(Origin::Real)
+///     .with_step(ProvenanceStep::Hardware { device: "camera-0".into() })
+///     .with_step(ProvenanceStep::Sensor(SensorId::new(1)))
+///     .with_step(ProvenanceStep::Algorithm(Algorithm::new("detector", "2.1")));
+///
+/// assert_eq!(provenance.origin(), Origin::Real);
+/// assert_eq!(provenance.sensors().collect::<Vec<_>>(), [SensorId::new(1)]);
+/// assert_eq!(provenance.algorithms().count(), 1);
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Provenance {

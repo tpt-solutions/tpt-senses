@@ -23,6 +23,22 @@ pub enum ClockSource {
 }
 
 /// A point in time, stored as nanoseconds since the epoch of its clock.
+///
+/// Timestamps from different clocks cannot be subtracted: [`Timestamp::duration_since`]
+/// returns `None` rather than guessing a relationship between clocks.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::{ClockSource, Duration, Timestamp};
+///
+/// let start = Timestamp::new(1_000_000_000, ClockSource::Monotonic);
+/// let end = Timestamp::new(1_250_000_000, ClockSource::Monotonic);
+/// assert_eq!(end.duration_since(start), Some(Duration::from_millis(250)));
+///
+/// let wall = Timestamp::new(1_250_000_000, ClockSource::Wall);
+/// assert_eq!(wall.duration_since(start), None);
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Timestamp {

@@ -212,6 +212,27 @@ impl MeasurementValue {
 }
 
 /// A single measurement from one sensor at one time.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::prelude::*;
+/// use tpt_senses::StandardDeviation;
+///
+/// let reading = Measurement::new(
+///     SensorId::new(3),
+///     Modality::Thermal,
+///     MeasurementValue::Scalar(21.5),
+///     Timestamp::new(2_000_000, ClockSource::Monotonic),
+///     Provenance::new(Origin::Real),
+/// )
+/// .with_uncertainty(
+///     Uncertainty::new().with_standard_deviation(StandardDeviation::new(0.2).unwrap()),
+/// );
+///
+/// assert_eq!(reading.sensor, SensorId::new(3));
+/// assert!(reading.uncertainty.is_some());
+/// ```
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]

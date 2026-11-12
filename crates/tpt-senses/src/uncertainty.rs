@@ -4,7 +4,20 @@
 //! types. They are not interchangeable: a sensor can be precise (low spread) yet inaccurate
 //! (biased), and a confidence score is a judgement, not a measured spread.
 
-/// A confidence score in the closed range `[0.0, 1.0]`.
+/// A confidence in `[0.0, 1.0]`: how strongly the producer believes its own output.
+///
+/// Confidence is deliberately a separate type from [`Uncertainty`]: it does not describe
+/// spread, and the two should not be interchanged.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::Confidence;
+///
+/// assert_eq!(Confidence::new(0.75).map(Confidence::get), Some(0.75));
+/// assert!(Confidence::new(1.5).is_none());
+/// assert!(Confidence::new(f64::NAN).is_none());
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 #[cfg_attr(
     feature = "serde",
@@ -154,6 +167,20 @@ impl StandardDeviation {
 }
 
 /// Quantified uncertainty of a measurement or observation. All parts are optional.
+///
+/// # Example
+///
+/// ```
+/// use tpt_senses::{Bounds, StandardDeviation, Uncertainty};
+///
+/// let uncertainty = Uncertainty::new()
+///     .with_standard_deviation(StandardDeviation::new(0.1).unwrap())
+///     .with_bounds(Bounds::new(20.0, 23.0).unwrap());
+///
+/// assert!(uncertainty.bounds.unwrap().contains(21.5));
+/// // Invalid values never get past the newtype constructors.
+/// assert!(StandardDeviation::new(-1.0).is_none());
+/// ```
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(
     feature = "serde",
