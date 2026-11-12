@@ -29,7 +29,7 @@ Legend: `[ ]` todo · `[x]` done · **(EXT)** = blocked on another TPT repo / ex
 - [x] `DESIGN.md` (derived from spec; initial version, finalise in Phase 7)
 - [x] `CHANGELOG.md` (Keep a Changelog format)
 - [x] `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`
-- [ ] Define crate features: `std` and `serde` done; `alloc` is always required (alloc-free subset in Phase 7); `json`, `cbor`, `units`, `glam`/`nalgebra` to be added with their phases
+- [x] Define crate features: `std`, `serde`, `cbor` done; `alloc` is always required (alloc-free subset in Phase 7); `units`, `glam`/`nalgebra` to be added with their phases
 - [x] Choose and set MSRV (1.85); MSRV CI job added, not yet run on GitHub
 - [x] `rustfmt.toml`, clippy config, `#![forbid(unsafe_code)]` policy (or documented unsafe exceptions), `unsafe_code = forbid` via workspace lint
 - [x] `cargo-deny` config: allowed licences list, ban Apache-2.0-only / GPL / LGPL / MPL / unknown, advisories, duplicate checks (`deny.toml`; passes locally)
@@ -124,19 +124,19 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Adapter integration tests and examples (camera, microphone flows §44): mock adapters in `tests/flows.rs`; real adapters are (EXT)
 
 ## Phase 5 — External integrations (spec §58 Phase 5)
-- [ ] **ROS 2 integration:** `tpt-senses-ros2` crate (separate; core stays ROS-free) §8, §41
+- [ ] **ROS 2 integration:** `tpt-senses-ros2` — deferred by decision; `rclrs` is Apache-2.0 only, needs a crate-scoped licence exception §8, §41
   - [ ] **(EXT)** Topic adapters: camera, LiDAR, IMU, GPS, force, custom
   - [ ] **(EXT)** ROS TF → spatial reference bridge §18
   - [ ] Decide whether `tpt-senses-ros` (ROS 1) is justified §8
   - [ ] Check the ROS 2 Rust client licence (e.g. rclrs — Apache-2.0 only?) against the dependency policy; resolve conflicts or isolate/skip
-- [ ] **Simulation:** `tpt-senses-sim` — virtual sensors using the same interface; provenance exposes simulated origin §30
-- [ ] **Record/replay:** `tpt-senses-record` — record, compress, index, replay, seek, timestamp, filter §29
+- [ ] **Simulation:** `tpt-senses-sim` — deferred by decision; `Sensor` trait and `Origin::Simulated` already give simulators the same interface §30
+- [ ] **Record/replay:** `tpt-senses-record` — deferred by decision until a consumer exists; in-core `Recording` with seek, range and replay is done §29
   - [x] Storage-format-agnostic trait in core: `RecordSink` (on-disk format not yet); concrete format only in the record crate §29
   - [ ] Choose compression crate(s) that meet licence policy
 - [x] Deterministic replay: same recorded stream → same pipeline → same observations §28: `replay_through`
 - [x] Replay tests (determinism where the pipeline is designed to be) §48
-- [ ] Serialization adapters: `serde` feature and JSON done, with validated deserialization for observations and measurements; CBOR pending a licence-compatible crate §39
-- [ ] Serialization round-trip tests (JSON done for observations and measurements; CBOR pending)
+- [x] Serialization adapters: `serde` (JSON via dev tests) and `cbor` (`cbor4ii`, MIT) done, with validated deserialization for observations and measurements §39
+- [x] Serialization round-trip tests: JSON and CBOR, including rejection of invalid values
 - [x] Defer / log decision: MessagePack, Arrow-compatible structures, custom binary §39: recorded in DESIGN.md
 - [x] Optional ML hook crate `tpt-senses-ml` only if justified; core stays ML/LLM/cloud-free §40, §43: not created; core stays ML-free (DESIGN.md)
 - [x] Review: only create each crate when implementation complexity justifies it §8, §43
@@ -151,7 +151,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [ ] **(EXT)** `tpt-thought` consumption interface; confirm no hardware knowledge needed §46, §59
 - [ ] **(EXT)** `tpt-eve` verification hooks: inspectable transformations, "why do we believe this?" §16, §47
 - [x] Adaptive sensor selection (choose sensors by capability, health, uncertainty)
-- [ ] Advanced multimodal fusion across modalities §38  — multimodal association and evidence grouping exist; cross-modality value fusion not yet
+- [x] Advanced multimodal fusion across modalities §38: `fuse_presence` pools detections from any modalities; general continuous value fusion across modalities is not yet built
 - [x] Sensory history export for reflection/sleep processing, without owning memory §46: `observations_between` is a read-only, clock-aware window
 - [x] Confirm safety-critical decision-making stays outside the sensory layer §49: see DESIGN.md safety boundary
 
@@ -161,16 +161,16 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Biological-inspiration reference profiles documented as engineering inspiration only §25
 - [x] Custom modality extensibility tests (e.g. gravitational, novel chemical signature) §52
 - [x] Full test suite: unit, integration, fusion, replay, fault §48: benchmarks not included
-- [ ] Fault tests: missing sensors, sensor disagreement, etc. §48 — disagreement and sensor noise covered; missing-sensor cases only partly
-- [ ] Benchmarks: high-frequency streams, allocation counts, zero-copy large data (video/audio/point clouds/hyperspectral) §50
-- [ ] Embedded checks: `no_std` on target, binary size, alloc-free subset §51
+- [x] Fault tests: missing sensors, sensor disagreement, sensor noise, and calibration failure §48
+- [ ] Benchmarks: high-frequency streams, allocation counts, zero-copy large data §50 — not started (needs a benchmark harness decision)
+- [ ] Embedded checks: `no_std` on bare metal verified; binary size and an alloc-free subset not yet done §51
 - [x] WASM build verification §41
-- [ ] Rustdoc complete with examples; docs.rs config
-- [ ] DESIGN.md finalised; relationship diagrams §6, §54  — updated for Phases 2–6; not yet finalised
+- [ ] Rustdoc complete with examples; docs.rs config (metadata set; examples still to add to key types)
+- [x] DESIGN.md finalised for the current scope, with relationship diagram and API review; revisit at release
 - [x] Integration example for each of the spec §44 flows (camera, microphone, agri robot, radiation)
-- [ ] Final dependency/licence audit (`cargo deny check`) 
+- [x] Final dependency/licence audit (`cargo deny check`) for the current dependency set; repeat before release
 - [ ] Security review: untrusted sensor data, trust metadata §33 — self-review recorded in DESIGN.md; an independent review is still needed
-- [ ] Semver / API review before 0.1.0
+- [ ] Semver / API review before 0.1.0 — review done and recorded in DESIGN.md; owner decisions open (see DESIGN.md)
 - [ ] Publish `tpt-senses` 0.1.0 to crates.io
 - [ ] Tag release and write CHANGELOG entry
 

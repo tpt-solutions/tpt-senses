@@ -35,7 +35,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Sensor::calibration()` and `Sensor::last_reading_at()` with defaults.
 - `observations_between()`: a read-only, clock-aware time window over observations.
 - Seeded sensor-noise fault test.
+- Optional `cbor` feature: `to_cbor` and `from_cbor`, via `cbor4ii` (MIT). Decoding applies the
+  same validation as JSON.
+- `fuse_presence`: multimodal fusion of boolean detections, pooled by odds, with independence and
+  an even prior recorded in provenance.
+- Fault tests for missing and faulted sensors.
 
 ### Changed
+- `MeasurementValue::Matrix`, `Image`, `Audio` and `Spectrum` now wrap private-field structs with
+  read-only accessors. Build them through the constructors.
+- `Uncertainty::standard_deviation` is a `StandardDeviation` newtype, finite and non-negative. The
+  `Uncertainty::is_valid` method is removed.
 - `ReorderBuffer::new` takes a capacity. Samples arriving while it is full are discarded and
   counted (`Ingest::Overflowed`, `overflow_dropped()`). This bounds memory under a flood.

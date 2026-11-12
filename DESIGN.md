@@ -14,6 +14,46 @@ REALITY → SENSOR → measurement → PERCEPTION → observation → tpt-senses
 - **Observation**: a semantic interpretation of one or more measurements, with confidence.
 - **Cognition** reasons about observations. It never needs to know the hardware.
 
+## Relationships (§6, §54)
+
+```mermaid
+flowchart LR
+    subgraph External["External systems (outside the core)"]
+        HW[Hardware and drivers]
+        ROS[ROS 2 / TF]
+        CV[tpt-cv / tpt-audio / tpt-voice]
+    end
+    subgraph Core["tpt-senses core (no_std + alloc)"]
+        AD[Adapter trait]
+        M[Measurement]
+        P[Pipeline and Stages]
+        F[Fusion and Association]
+        O[Observation]
+        W[WorldState]
+        E[Events]
+    end
+    subgraph Cognition["Cognition (outside the core)"]
+        T[tpt-thought]
+        AN[tpt-anima]
+    end
+    HW -->|read| M
+    ROS -.->|adapter, optional| AD
+    CV -.->|adapter, optional| AD
+    AD --> O
+    M --> P --> O
+    O --> F --> O
+    O --> W
+    O --> E
+    W --> T
+    E --> T
+    O --> T
+    AN -.->|attention hints| P
+```
+
+Solid arrows are the core's own data flow. Dashed arrows are adapter or hint paths that depend on
+the integrating system. Cognition only ever receives observations, world state and events. It never
+receives hardware types.
+
 ## Module map
 
 | Area | Module(s) | Spec |
@@ -120,6 +160,9 @@ action is safe. Attention hints and information requests change *how* the system
   dimensions, audio that is not whole frames or has no channels, and spectra of unequal length.
   Audio in memory is built with `MeasurementValue::audio`, which applies the same check.
 
+- CBOR is available behind the `cbor` feature, through `cbor4ii` (MIT, no_std with alloc). It uses
+  the same `Deserialize` implementations, so the same validation applies.
+
 ## Security self-review (not an independent review)
 
 Reviewed against the threat of untrusted sensor and network data (spec §33):
@@ -136,10 +179,32 @@ Reviewed against the threat of untrusted sensor and network data (spec §33):
 
 An independent review is still needed before the 0.1.0 release.
 
+## API review (pre-0.1.0)
+
+Changed in this review:
+
+- `MeasurementValue::Matrix`, `Image`, `Audio` and `Spectrum` hold private-field wrappers, so their
+  shape invariants cannot be bypassed in memory.
+- `Uncertainty::standard_deviation` is a `StandardDeviation` newtype, finite and non-negative by
+  construction. `Uncertainty::is_valid` is removed.
+- `ReorderBuffer::new` takes a capacity.
+
+Open decisions for the owner before 0.1.0:
+
+- **Public structs with public fields** (`Event`, `Algorithm`, `Diagnostics`, `SensorCapabilities`,
+  `CalibrationRecord`, `ParameterChangeRequest`, `AttentionHint`, `Uncertainty`, and others). Adding
+  a field later is a breaking change unless they are `#[non_exhaustive]`. That also stops external
+  struct literals, so it needs constructors or builders first.
+- **`Diagnostics` ranges are documented but not enforced.** `drop_rate` should be in `[0, 1]`, and
+  `signal_quality` has a stated scale. Both could become validated newtypes.
+- **`Observation` lifecycle and trust are data**, and deserialization keeps them. That is
+  intentional, and it is recorded above.
+
 ## Deliberately deferred
 
-- CBOR, and an on-disk record format in a separate crate (§29, §39). The CBOR crates considered so
-  far need a licence decision against `deny.toml` before they are added.
-- Simulation sources, ROS 2 integration, and all `(EXT)` adapters (Phases 4–6).
+- An on-disk record format in a separate crate (§29, §39). Deferred until a consumer needs it.
+- Simulation sources and ROS 2 integration, deferred until a consumer exists. ROS 2 (`rclrs`) is
+  Apache-2.0 only, so it would need an explicit, crate-scoped licence exception.
+- All `(EXT)` adapters, which depend on other TPT repositories.
 - Benchmarks, an alloc-free subset, binary-size checks, and profile-specific fault tests (Phase 7).
 - Meta-signal interpretation and anything that owns cognitive state (belongs to `tpt-thought`).
