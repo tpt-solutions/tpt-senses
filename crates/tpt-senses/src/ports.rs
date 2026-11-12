@@ -72,6 +72,9 @@ mod tests {
     fn attention_source_drains_once() {
         let mut hints = alloc::vec![AttentionHint::new(None, Confidence::ONE)];
         assert_eq!(hints.drain_hints().len(), 1);
-        assert_eq!(hints.drain_hints(), [] as [crate::control::AttentionHint; 0]);
+        assert_eq!(
+            hints.drain_hints(),
+            [] as [crate::control::AttentionHint; 0]
+        );
     }
 }
