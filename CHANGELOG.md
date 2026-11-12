@@ -28,3 +28,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   deterministic `replay_through`; parameter change types, information requests, attention-based
   sampling and sensor selection; `SensoryProfile`.
 - Integration tests for the spec §44 flows (camera, microphone, agricultural robot, radiation).
+- Optional `serde` feature: serialization of the observation model, with validated deserialization
+  for types that carry invariants.
+- `Sensor::calibration()` and `Sensor::last_reading_at()` with defaults.
+- `observations_between()`: a read-only, clock-aware time window over observations.
+- Seeded sensor-noise fault test.
+
+### Changed
+- `ReorderBuffer::new` takes a capacity. Samples arriving while it is full are discarded and
+  counted (`Ingest::Overflowed`, `overflow_dropped()`). This bounds memory under a flood.

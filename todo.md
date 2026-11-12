@@ -29,7 +29,7 @@ Legend: `[ ]` todo · `[x]` done · **(EXT)** = blocked on another TPT repo / ex
 - [x] `DESIGN.md` (derived from spec; initial version, finalise in Phase 7)
 - [x] `CHANGELOG.md` (Keep a Changelog format)
 - [x] `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`
-- [ ] Define crate features: `std` done; `alloc` is always required by the core (alloc-free subset in Phase 7); `serde`, `json`, `cbor`, `units`, `glam`/`nalgebra` to be added with their phases
+- [ ] Define crate features: `std` and `serde` done; `alloc` is always required (alloc-free subset in Phase 7); `json`, `cbor`, `units`, `glam`/`nalgebra` to be added with their phases
 - [x] Choose and set MSRV (1.85); MSRV CI job added, not yet run on GitHub
 - [x] `rustfmt.toml`, clippy config, `#![forbid(unsafe_code)]` policy (or documented unsafe exceptions), `unsafe_code = forbid` via workspace lint
 - [x] `cargo-deny` config: allowed licences list, ban Apache-2.0-only / GPL / LGPL / MPL / unknown, advisories, duplicate checks (`deny.toml`; passes locally)
@@ -37,7 +37,7 @@ Legend: `[ ]` todo · `[x]` done · **(EXT)** = blocked on another TPT repo / ex
 - [x] CI: `no_std` build on a bare-metal target (e.g. `thumbv7em-none-eabihf`) (verified locally)
 - [x] CI: WASM build check (`wasm32-unknown-unknown`) §41 (verified locally)
 - [ ] CI: cargo-semver-checks / publish dry-run
-- [ ] Dependency audit: confirm every dependency (`futures-core`, `serde`, CBOR/JSON crates, etc.) passes the licence policy
+- [x] Dependency audit: `futures-core`, `serde` and dev-only `serde_json` pass the licence policy (`cargo deny check`)
 - [ ] Reserve crate names on crates.io (`tpt-senses` + planned sub-crates)
 - [x] Create `tests/` directory and test layout (`crates/tpt-senses/tests/core_model.rs`)
 
@@ -62,7 +62,7 @@ Modules: `lib`, `sensor`, `modality`, `measurement`, `observation`, `capability`
 - [x] Observation lifecycle states (RAW … ARCHIVED) §34
 - [x] `SensorHealth` states (Online/Offline/Degraded/Calibrating/Faulted/Unknown) + diagnostics (signal quality, noise, latency, drop rate, temperature, calibration status) §31
 - [x] `SensorError` type
-- [ ] `Sensor` trait (identity, capabilities, read, + timestamp/calibration/health/provenance/uncertainty exposure) §9 — identity, capabilities, health, read done; timestamp/calibration/provenance/uncertainty exposure pending Phase 2 calibration work
+- [x] `Sensor` trait (identity, capabilities, health, read, calibration, last_reading_at) §9 — provenance and uncertainty are per reading, carried on `Measurement`, not exposed by the sensor
 - [x] Measurement → Observation conversion path (simple sensor, no pipeline) §26
 - [x] Unit tests: modality, timestamps, uncertainty, provenance, observation construction §48
 - [x] Doc-tests and examples (thermal example in `lib.rs`; radiation example, §44, still pending)
@@ -135,8 +135,8 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
   - [ ] Choose compression crate(s) that meet licence policy
 - [x] Deterministic replay: same recorded stream → same pipeline → same observations §28: `replay_through`
 - [x] Replay tests (determinism where the pipeline is designed to be) §48
-- [ ] Serialization adapters: `serde` feature, JSON, CBOR; keep Rust-native types canonical §39
-- [ ] Serialization round-trip tests (JSON, CBOR)
+- [ ] Serialization adapters: `serde` feature and JSON done (validated deserialization); CBOR pending a licence-compatible crate; `MeasurementValue` not yet serializable §39
+- [ ] Serialization round-trip tests (JSON done; CBOR pending)
 - [x] Defer / log decision: MessagePack, Arrow-compatible structures, custom binary §39: recorded in DESIGN.md
 - [x] Optional ML hook crate `tpt-senses-ml` only if justified; core stays ML/LLM/cloud-free §40, §43: not created; core stays ML-free (DESIGN.md)
 - [x] Review: only create each crate when implementation complexity justifies it §8, §43
@@ -152,7 +152,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [ ] **(EXT)** `tpt-eve` verification hooks: inspectable transformations, "why do we believe this?" §16, §47
 - [x] Adaptive sensor selection (choose sensors by capability, health, uncertainty)
 - [ ] Advanced multimodal fusion across modalities §38  — multimodal association and evidence grouping exist; cross-modality value fusion not yet
-- [ ] Sensory history export for reflection/sleep processing, without owning memory §46
+- [x] Sensory history export for reflection/sleep processing, without owning memory §46: `observations_between` is a read-only, clock-aware window
 - [x] Confirm safety-critical decision-making stays outside the sensory layer §49: see DESIGN.md safety boundary
 
 ## Phase 7 — Profiles, hardening, docs & release
@@ -161,7 +161,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Biological-inspiration reference profiles documented as engineering inspiration only §25
 - [x] Custom modality extensibility tests (e.g. gravitational, novel chemical signature) §52
 - [x] Full test suite: unit, integration, fusion, replay, fault §48: benchmarks not included
-- [ ] Fault tests: missing sensors, sensor disagreement, etc. §48  — sensor disagreement covered; missing-sensor cases only partly
+- [ ] Fault tests: missing sensors, sensor disagreement, etc. §48 — disagreement and sensor noise covered; missing-sensor cases only partly
 - [ ] Benchmarks: high-frequency streams, allocation counts, zero-copy large data (video/audio/point clouds/hyperspectral) §50
 - [ ] Embedded checks: `no_std` on target, binary size, alloc-free subset §51
 - [x] WASM build verification §41
@@ -169,7 +169,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [ ] DESIGN.md finalised; relationship diagrams §6, §54  — updated for Phases 2–6; not yet finalised
 - [x] Integration example for each of the spec §44 flows (camera, microphone, agri robot, radiation)
 - [ ] Final dependency/licence audit (`cargo deny check`) 
-- [ ] Security review: untrusted sensor data, trust metadata §33
+- [ ] Security review: untrusted sensor data, trust metadata §33 — self-review recorded in DESIGN.md; an independent review is still needed
 - [ ] Semver / API review before 0.1.0
 - [ ] Publish `tpt-senses` 0.1.0 to crates.io
 - [ ] Tag release and write CHANGELOG entry

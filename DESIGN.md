@@ -105,10 +105,40 @@ uncertainty, provenance, disagreement and calibration status. It does not decide
 action is safe. Attention hints and information requests change *how* the system senses, never
 *what counts as true*.
 
+## Serialization (feature `serde`)
+
+- The observation model serializes: identifiers, timestamps, modality, provenance (including
+  calibration and algorithms), trust, spatial references and observations.
+- Types with invariants deserialize through the same checks as their constructors:
+  `Confidence`, `Precision` and `Accuracy` are `[0, 1]` or non-negative; `Bounds` is ordered;
+  `Uncertainty` validates its standard deviation. Untrusted input therefore cannot create an
+  out-of-range value.
+- A deserialized observation keeps the lifecycle state and trust metadata its source recorded.
+  Consumers must check `trust()` before relying on it. Deserialization never promotes trust.
+- `MeasurementValue` and `Measurement` are not serializable yet. Their buffers (matrices, images,
+  spectra) need a validated wire form first.
+
+## Security self-review (not an independent review)
+
+Reviewed against the threat of untrusted sensor and network data (spec §33):
+
+| Risk | Status |
+|---|---|
+| Unbounded memory from a burst of samples | Fixed: `ReorderBuffer` has a capacity; overflow is counted. `BoundedQueue` and `SensorStream` were bounded from the start. |
+| Invalid values from untrusted input | Fixed for the observation model: validated deserialization (see above). |
+| Forged trust or lifecycle state in a document | Not prevented by the format. Trust is data, not proof. Authentication and integrity checks must come from the adapter, and `ValidationStage` rejects known-bad trust. |
+| Quadratic cost in `associate` | Open. Cost grows with the square of the observation count. Callers must bound the input window. |
+| Unbounded growth in `Recording` | Open by design. A recording is a caller-owned log. Callers must bound it or use a sink with a limit. |
+| Panics on hostile input | Audited by reading the non-test source. Constructors and stream paths return `Option`, `Result` or a counted drop. Indexing is guarded by construction (every association group has a member; `fuse` rejects empty input). Two caller-controlled cases remain: `associate` overflows if `first_id` is near `u64::MAX` (documented), and a very large buffer capacity aborts on allocation. Fuzzing has not been done. |
+| Timing or side channels | Out of scope for this crate. |
+
+An independent review is still needed before the 0.1.0 release.
+
 ## Deliberately deferred
 
-- Serialization (`serde`, JSON, CBOR) and an on-disk record format in a separate crate (§29, §39).
-  CBOR crates need a licence check against `deny.toml` before they are added.
+- CBOR, and an on-disk record format in a separate crate (§29, §39). The CBOR crates considered so
+  far need a licence decision against `deny.toml` before they are added.
+- Serializing `MeasurementValue` and `Measurement` (validated buffer wire form).
 - Simulation sources, ROS 2 integration, and all `(EXT)` adapters (Phases 4–6).
 - Benchmarks, an alloc-free subset, binary-size checks, and profile-specific fault tests (Phase 7).
 - Meta-signal interpretation and anything that owns cognitive state (belongs to `tpt-thought`).

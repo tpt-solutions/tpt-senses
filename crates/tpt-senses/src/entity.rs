@@ -85,6 +85,9 @@ fn distance(a: Point3, b: Point3) -> f64 {
 /// Groups observations into entities. Each group receives the next identifier from `first_id`.
 ///
 /// Observations without a position are ignored.
+///
+/// `first_id` plus the number of groups must not exceed `u64::MAX`. Identifiers are assigned by
+/// incrementing, so a `first_id` near the top of the range overflows (a panic in debug builds).
 #[must_use]
 pub fn associate(
     observations: &[Observation],
