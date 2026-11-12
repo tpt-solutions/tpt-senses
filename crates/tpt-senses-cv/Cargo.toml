@@ -1,0 +1,21 @@
+[package]
+name = "tpt-senses-cv"
+description = "Adapter from tpt-cv (keypoints, optical flow, camera pose) to tpt-senses observations."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+tpt-senses = { version = "0.1.0", path = "../tpt-senses" }
+tpt-cv-feature = "0.1"
+tpt-cv-geo = "0.1"
+
+[dev-dependencies]
+tpt-cv-core = "0.1"
+
+[lints]
+workspace = true

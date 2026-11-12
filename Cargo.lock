@@ -178,6 +178,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
+name = "libm"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
+
+[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -330,6 +336,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "tpt-cv-core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e042c772975256977ff47328b07eb7afad3e728a1bf3c2b5d09ac7f450a3ddec"
+dependencies = [
+ "libm",
+]
+
+[[package]]
+name = "tpt-cv-feature"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3840eed54ca1b3f58403949e220dc908f120ad13d6a9813d7c5d08bb107216d"
+dependencies = [
+ "tpt-cv-core",
+]
+
+[[package]]
+name = "tpt-cv-geo"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c03fcc96bf4fcfb66f6967364cd91fcb5130c27056a63e4f156dac3744d824c2"
+dependencies = [
+ "tpt-cv-core",
+]
+
+[[package]]
 name = "tpt-senses"
 version = "0.1.0"
 dependencies = [
@@ -338,6 +371,16 @@ dependencies = [
  "futures-core",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "tpt-senses-cv"
+version = "0.1.0"
+dependencies = [
+ "tpt-cv-core",
+ "tpt-cv-feature",
+ "tpt-cv-geo",
+ "tpt-senses",
 ]
 
 [[package]]
