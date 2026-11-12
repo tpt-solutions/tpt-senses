@@ -5,6 +5,7 @@ members = [
     "crates/tpt-senses-agri",
     "crates/tpt-senses-audio",
     "crates/tpt-senses-cv",
+    "crates/tpt-senses-eve",
     "crates/tpt-senses-voice",
 ]
 

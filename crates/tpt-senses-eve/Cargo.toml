@@ -1,0 +1,18 @@
+[package]
+name = "tpt-senses-eve"
+description = "Adapter from tpt-senses observations to tpt-eve facts, keeping confidence and source."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+authors.workspace = true
+keywords = ["sensors", "perception", "symbolic-ai", "cognitive-arch", "fact"]
+categories = ["science::robotics"]
+
+[dependencies]
+tpt-senses = { version = "0.1.0", path = "../tpt-senses" }
+tpt-eve-core = "0.1.0"
+
+[lints]
+workspace = true

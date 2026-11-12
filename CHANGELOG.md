@@ -6,4 +6,5 @@ This repository is a Cargo workspace. Each published crate keeps its own changel
 - [`tpt-senses-agri`](crates/tpt-senses-agri/CHANGELOG.md): adapter for `tpt-teleop-agri`
 - [`tpt-senses-audio`](crates/tpt-senses-audio/CHANGELOG.md): adapter for `tpt-audio`
 - [`tpt-senses-cv`](crates/tpt-senses-cv/CHANGELOG.md): adapter for `tpt-cv`
+- [`tpt-senses-eve`](crates/tpt-senses-eve/CHANGELOG.md): adapter to `tpt-eve` facts
 - [`tpt-senses-voice`](crates/tpt-senses-voice/CHANGELOG.md): adapter for `tpt-voice`
