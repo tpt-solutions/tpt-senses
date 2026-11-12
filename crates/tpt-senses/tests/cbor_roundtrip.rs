@@ -109,7 +109,7 @@ fn cbor_rejects_inverted_bounds() {
 fn cbor_rejects_malformed_bytes() {
     assert!(from_cbor::<Observation>(&[0xff, 0x00, 0x13]).is_err());
     let err = from_cbor::<Confidence>(&[0xff]).unwrap_err();
-    assert!(!err.message().is_empty());
+    assert_ne!(err.message(), "");
 }
 
 #[test]

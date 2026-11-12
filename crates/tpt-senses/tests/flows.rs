@@ -132,7 +132,7 @@ fn non_speech_sound_becomes_sound_event_not_speech() {
     )
     .expect("loud sound should be an event");
     assert_eq!(event.kind, EventKind::SoundDetected);
-    assert!(event.measurements.is_empty());
+    assert_eq!(event.measurements, [] as [tpt_senses::Measurement; 0]);
     assert_eq!(event.modality, Modality::Auditory);
 }
 

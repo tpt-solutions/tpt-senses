@@ -125,7 +125,7 @@ mod tests {
         );
         let explanation = explain(&observation);
         assert_eq!(explanation.steps, 0);
-        assert!(explanation.sensors.is_empty());
+        assert_eq!(explanation.sensors, [] as [crate::id::SensorId; 0]);
         assert!(!explanation.has_uncertainty);
     }
 }

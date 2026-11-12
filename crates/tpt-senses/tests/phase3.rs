@@ -725,8 +725,8 @@ fn a_pipeline_with_no_calibration_stops_rather_than_passing_data_through() {
 #[test]
 fn world_state_is_empty_when_nothing_was_observed() {
     let world = WorldState::derive(&[], &[]);
-    assert!(world.entities().is_empty());
-    assert!(world.environment().is_empty());
-    assert!(world.body().is_empty());
+    assert_eq!(world.entities(), []);
+    assert_eq!(world.environment(), []);
+    assert_eq!(world.body(), []);
     assert!(world.robot_pose().is_none());
 }
