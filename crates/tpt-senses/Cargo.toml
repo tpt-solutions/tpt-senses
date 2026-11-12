@@ -1,0 +1,23 @@
+[package]
+name = "tpt-senses"
+description = "General-purpose sensory and perception foundation: measurements, observations, uncertainty and provenance."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = ["std"]
+# Enables std integrations (std::error::Error impls). The core always requires `alloc`;
+# an alloc-free subset is tracked separately (todo Phase 7, spec §51).
+std = []
+
+
+[lints]
+workspace = true
+
+[dependencies]

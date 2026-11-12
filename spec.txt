@@ -3,7 +3,7 @@
 **Repository:** `tpt-senses`
 **Organisation:** TPT Solutions
 **Language:** Rust
-**License:** MIT
+**License:** MIT OR Apache-2.0
 **Status:** Design Specification
 **Version:** 0.1.0
 

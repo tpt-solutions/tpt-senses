@@ -1,0 +1,35 @@
+# cargo-deny configuration. Run with: cargo deny check
+#
+# Licence policy (todo Phase 0, spec §41, DESIGN.md):
+# - Dual-licensed crates such as "MIT OR Apache-2.0" are accepted via their MIT option.
+# - Apache-2.0 *alone* is NOT on the allow list, so Apache-only dependencies are rejected.
+# - GPL, LGPL, MPL, AGPL and unknown licences are rejected by omission.
+
+[graph]
+all-features = true
+
+[licenses]
+allow = [
+    "MIT",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "Unlicense",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+]
+confidence-threshold = 0.93
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+[advisories]
+ignore = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
