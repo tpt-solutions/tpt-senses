@@ -160,6 +160,7 @@ impl StandardDeviation {
     derive(serde::Serialize, serde::Deserialize),
     serde(from = "UncertaintyWire", into = "UncertaintyWire")
 )]
+#[non_exhaustive]
 pub struct Uncertainty {
     /// Standard deviation of the value. Finite and non-negative by construction.
     pub standard_deviation: Option<StandardDeviation>,
@@ -171,6 +172,49 @@ pub struct Uncertainty {
     pub bounds: Option<Bounds>,
     /// Assumed error distribution.
     pub distribution: Option<Distribution>,
+}
+
+impl Uncertainty {
+    /// No uncertainty information. Same as `Default::default()`.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Sets the standard deviation (builder style).
+    #[must_use]
+    pub const fn with_standard_deviation(mut self, value: StandardDeviation) -> Self {
+        self.standard_deviation = Some(value);
+        self
+    }
+
+    /// Sets the precision (builder style).
+    #[must_use]
+    pub const fn with_precision(mut self, value: Precision) -> Self {
+        self.precision = Some(value);
+        self
+    }
+
+    /// Sets the accuracy (builder style).
+    #[must_use]
+    pub const fn with_accuracy(mut self, value: Accuracy) -> Self {
+        self.accuracy = Some(value);
+        self
+    }
+
+    /// Sets the bounds (builder style).
+    #[must_use]
+    pub const fn with_bounds(mut self, value: Bounds) -> Self {
+        self.bounds = Some(value);
+        self
+    }
+
+    /// Sets the error distribution (builder style).
+    #[must_use]
+    pub const fn with_distribution(mut self, value: Distribution) -> Self {
+        self.distribution = Some(value);
+        self
+    }
 }
 
 #[cfg(feature = "serde")]

@@ -41,21 +41,21 @@ fn full_observation() -> Observation {
         provenance,
     )
     .with_subject(EntityId::new(27))
-    .with_uncertainty(Uncertainty {
-        standard_deviation: StandardDeviation::new(0.2),
-        bounds: Bounds::new(0.5, 1.5),
-        ..Default::default()
-    })
+    .with_uncertainty(
+        Uncertainty::new()
+            .with_standard_deviation(StandardDeviation::new(0.2).unwrap())
+            .with_bounds(Bounds::new(0.5, 1.5).unwrap()),
+    )
     .with_location(SpatialReference::at(
         CoordinateFrame::World,
         [1.0, 2.0, 0.5],
     ))
-    .with_trust(TrustMetadata {
-        source: Some(SourceIdentity::new("robot-7")),
-        authentication: AuthenticationStatus::Authenticated,
-        level: TrustLevel::Verified,
-        ..TrustMetadata::unverified()
-    })
+    .with_trust(
+        TrustMetadata::unverified()
+            .with_source(SourceIdentity::new("robot-7"))
+            .with_authentication(AuthenticationStatus::Authenticated)
+            .with_level(TrustLevel::Verified),
+    )
 }
 
 #[test]
@@ -127,11 +127,9 @@ fn identifiers_and_timestamps_round_trip() {
 
 #[test]
 fn valid_uncertainty_round_trips_on_its_own() {
-    let u = Uncertainty {
-        standard_deviation: StandardDeviation::new(0.0),
-        bounds: Bounds::new(-1.0, 1.0),
-        ..Default::default()
-    };
+    let u = Uncertainty::new()
+        .with_standard_deviation(StandardDeviation::new(0.0).unwrap())
+        .with_bounds(Bounds::new(-1.0, 1.0).unwrap());
     let back: Uncertainty = serde_json::from_str(&serde_json::to_string(&u).unwrap()).unwrap();
     assert_eq!(back, u);
 }

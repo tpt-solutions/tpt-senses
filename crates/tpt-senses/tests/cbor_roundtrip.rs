@@ -25,11 +25,11 @@ fn observation() -> Observation {
         mono(10),
         Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(2))),
     )
-    .with_uncertainty(Uncertainty {
-        standard_deviation: StandardDeviation::new(0.1),
-        bounds: Bounds::new(37.0, 37.8),
-        ..Default::default()
-    })
+    .with_uncertainty(
+        Uncertainty::new()
+            .with_standard_deviation(StandardDeviation::new(0.1).unwrap())
+            .with_bounds(Bounds::new(37.0, 37.8).unwrap()),
+    )
 }
 
 #[test]

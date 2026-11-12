@@ -93,12 +93,10 @@ fn sensor_errors_propagate() {
 
 #[test]
 fn measurement_uncertainty_is_carried_into_observation() {
-    let uncertainty = Uncertainty {
-        standard_deviation: StandardDeviation::new(0.1),
-        bounds: Bounds::new(37.0, 37.8),
-        distribution: Some(Distribution::Gaussian),
-        ..Default::default()
-    };
+    let uncertainty = Uncertainty::new()
+        .with_standard_deviation(StandardDeviation::new(0.1).unwrap())
+        .with_bounds(Bounds::new(37.0, 37.8).unwrap())
+        .with_distribution(Distribution::Gaussian);
 
     let measurement = Measurement::new(
         SensorId::new(5),

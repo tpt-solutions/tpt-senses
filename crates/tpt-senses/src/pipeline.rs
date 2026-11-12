@@ -371,10 +371,9 @@ mod tests {
 
     #[test]
     fn untrusted_source_is_rejected() {
-        let bad = obs(0.9).with_trust(TrustMetadata {
-            integrity: crate::IntegrityStatus::Corrupted,
-            ..TrustMetadata::unverified()
-        });
+        let bad = obs(0.9).with_trust(
+            TrustMetadata::unverified().with_integrity(crate::IntegrityStatus::Corrupted),
+        );
         let pipeline =
             Pipeline::new().with_stage(ValidationStage::new(Confidence::new(0.1).unwrap()));
         assert!(pipeline.run(bad).is_err());

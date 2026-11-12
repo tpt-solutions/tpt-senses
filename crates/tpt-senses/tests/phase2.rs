@@ -342,12 +342,10 @@ fn observation_from_network_source_is_not_trusted_by_default() {
 
 #[test]
 fn authenticated_source_metadata_is_recorded() {
-    let trust = TrustMetadata {
-        source: Some(SourceIdentity::new("robot-7")),
-        authentication: AuthenticationStatus::Authenticated,
-        level: TrustLevel::Verified,
-        ..TrustMetadata::unverified()
-    };
+    let trust = TrustMetadata::unverified()
+        .with_source(SourceIdentity::new("robot-7"))
+        .with_authentication(AuthenticationStatus::Authenticated)
+        .with_level(TrustLevel::Verified);
     let obs = Observation::new(
         ObservationId::new(12),
         Modality::Custom("telemetry".into()),

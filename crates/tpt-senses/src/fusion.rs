@@ -478,11 +478,8 @@ mod tests {
             ts,
             Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(sensor))),
         );
-        if let Some(s) = sigma {
-            o = o.with_uncertainty(Uncertainty {
-                standard_deviation: StandardDeviation::new(s),
-                ..Default::default()
-            });
+        if let Some(sd) = sigma.and_then(StandardDeviation::new) {
+            o = o.with_uncertainty(Uncertainty::new().with_standard_deviation(sd));
         }
         o
     }

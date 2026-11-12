@@ -71,6 +71,7 @@ pub enum TrustLevel {
 /// Trust metadata attached to an observation.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
 pub struct TrustMetadata {
     /// Who produced the data, if known.
     pub source: Option<SourceIdentity>,
@@ -83,6 +84,34 @@ pub struct TrustMetadata {
 }
 
 impl TrustMetadata {
+    /// Sets who produced the data (builder style).
+    #[must_use]
+    pub fn with_source(mut self, source: SourceIdentity) -> Self {
+        self.source = Some(source);
+        self
+    }
+
+    /// Sets the authentication result (builder style).
+    #[must_use]
+    pub const fn with_authentication(mut self, status: AuthenticationStatus) -> Self {
+        self.authentication = status;
+        self
+    }
+
+    /// Sets the integrity result (builder style).
+    #[must_use]
+    pub const fn with_integrity(mut self, status: IntegrityStatus) -> Self {
+        self.integrity = status;
+        self
+    }
+
+    /// Sets the resulting trust level (builder style).
+    #[must_use]
+    pub const fn with_level(mut self, level: TrustLevel) -> Self {
+        self.level = level;
+        self
+    }
+
     /// Trust metadata for data with no checks performed: unknown source, unverified, unknown
     /// trust. This is the default for all newly created observations.
     #[must_use]
@@ -119,15 +148,9 @@ mod tests {
 
     #[test]
     fn failed_checks_mark_data_bad() {
-        let t = TrustMetadata {
-            authentication: AuthenticationStatus::Failed,
-            ..TrustMetadata::unverified()
-        };
+        let t = TrustMetadata::unverified().with_authentication(AuthenticationStatus::Failed);
         assert!(t.is_known_bad());
-        let c = TrustMetadata {
-            integrity: IntegrityStatus::Corrupted,
-            ..Default::default()
-        };
+        let c = TrustMetadata::default().with_integrity(IntegrityStatus::Corrupted);
         assert!(c.is_known_bad());
     }
 

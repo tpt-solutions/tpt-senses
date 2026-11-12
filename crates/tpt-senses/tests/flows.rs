@@ -243,10 +243,9 @@ fn robot_position_fix_with_frame_and_uncertainty() {
         CoordinateFrame::World,
         [512.4, 88.1, 0.0],
     ))
-    .with_uncertainty(Uncertainty {
-        standard_deviation: StandardDeviation::new(1.5),
-        ..Default::default()
-    });
+    .with_uncertainty(
+        Uncertainty::new().with_standard_deviation(StandardDeviation::new(1.5).unwrap()),
+    );
     assert_eq!(
         gps.uncertainty().unwrap().standard_deviation,
         StandardDeviation::new(1.5)
