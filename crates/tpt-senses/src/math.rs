@@ -24,7 +24,7 @@ pub(crate) fn sqrt(x: f64) -> f64 {
     let exponent = ((x.to_bits() >> 52) & 0x7ff) as i64 - 1023;
     let mut guess = f64::from_bits(((exponent / 2 + 1023) as u64) << 52);
     for _ in 0..64 {
-        let next = 0.5 * (guess + x / guess);
+        let next = f64::midpoint(guess, x / guess);
         if next == guess {
             break;
         }
