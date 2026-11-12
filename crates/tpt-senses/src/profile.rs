@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn custom_profile_is_empty_until_defined() {
-        assert!(SensoryProfile::Custom.expected_modalities().is_empty());
+        assert_eq!(SensoryProfile::Custom.expected_modalities().len(), 0);
         assert!(SensoryProfile::Human.disclaimer().contains("Not a model"));
     }
 

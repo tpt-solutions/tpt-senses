@@ -324,7 +324,7 @@ mod tests {
     fn empty_pipeline_is_identity() {
         let out = Pipeline::new().run(obs(0.5)).unwrap();
         assert_eq!(out.observation.state(), ObservationState::Raw);
-        assert!(out.trace.is_empty());
+        assert_eq!(out.trace.len(), 0);
     }
 
     #[test]
@@ -356,7 +356,7 @@ mod tests {
         let err = pipeline.run(obs(0.2)).unwrap_err();
         assert_eq!(err.stage, "validation");
         assert!(err.reason.contains("below minimum"));
-        assert!(err.trace.is_empty());
+        assert_eq!(err.trace.len(), 0);
     }
 
     #[test]

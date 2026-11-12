@@ -194,7 +194,7 @@ mod tests {
         )
         .with_entity(EntityId::new(27));
         assert_eq!(e.entity, Some(EntityId::new(27)));
-        assert!(e.measurements.is_empty());
+        assert_eq!(e.measurements.len(), 0);
         assert_ne!(e.kind, EventKind::Custom("x".into()));
     }
 }
