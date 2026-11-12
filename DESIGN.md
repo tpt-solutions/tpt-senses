@@ -181,24 +181,26 @@ An independent review is still needed before the 0.1.0 release.
 
 ## API review (pre-0.1.0)
 
-Changed in this review:
+Decisions taken in this review:
 
-- `MeasurementValue::Matrix`, `Image`, `Audio` and `Spectrum` hold private-field wrappers, so their
-  shape invariants cannot be bypassed in memory.
-- `Uncertainty::standard_deviation` is a `StandardDeviation` newtype, finite and non-negative by
-  construction. `Uncertainty::is_valid` is removed.
-- `ReorderBuffer::new` takes a capacity.
+- **Plain data is `#[non_exhaustive]`.** Public structs with public fields can gain fields without
+  a breaking change. External code builds them through `new()` or `with_*` builders:
+  `Uncertainty`, `TrustMetadata`, `Diagnostics`, `FusionConfig`, `AssociationConfig`,
+  `SensorCandidate`, `AttentionHint`, `ParameterChangeRequest`, `VisionCapability`,
+  `AuditoryCapability`, and the rest listed in the code.
+- **Measurement shapes are private.** `Matrix`, `Image`, `Audio` and `Spectrum` hold private fields
+  behind validated constructors and read-only accessors.
+- **Physical quantities are validated types.** `StandardDeviation` is non-negative, `Ratio` is in
+  `[0, 1]`, and `Celsius` is finite. `Diagnostics` uses them, so its documented ranges are enforced.
+- **`ReorderBuffer` takes a capacity**, so memory stays bounded under a flood.
 
-Open decisions for the owner before 0.1.0:
+Still for the owner before 0.1.0:
 
-- **Public structs with public fields** (`Event`, `Algorithm`, `Diagnostics`, `SensorCapabilities`,
-  `CalibrationRecord`, `ParameterChangeRequest`, `AttentionHint`, `Uncertainty`, and others). Adding
-  a field later is a breaking change unless they are `#[non_exhaustive]`. That also stops external
-  struct literals, so it needs constructors or builders first.
-- **`Diagnostics` ranges are documented but not enforced.** `drop_rate` should be in `[0, 1]`, and
-  `signal_quality` has a stated scale. Both could become validated newtypes.
-- **`Observation` lifecycle and trust are data**, and deserialization keeps them. That is
-  intentional, and it is recorded above.
+- Sign-off on the semver policy above.
+- Whether `Diagnostics::temperature` should stay a free-standing `Celsius`, or be part of a
+  larger sensor-state type later.
+- The public-API surface should be re-checked once the EXT adapters exist, since they will
+  exercise it from outside the repository.
 
 ## Deliberately deferred
 

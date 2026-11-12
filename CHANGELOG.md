@@ -43,6 +43,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Deterministic fuzz-style tests of the JSON and CBOR decoders, and property tests of the bounded
   queue and reorder buffer.
 - `throughput` example: a timing baseline for the stream path.
+- Criterion benchmarks in `benches/streams.rs` (dev-dependency, pinned to 0.7 for the MSRV).
+- Presence fusion, a `cbor` feature, and private-field measurement wrappers were added earlier in
+  this release cycle; see the sections above.
+
+### Changed (API review)
+- Public plain-data structs are `#[non_exhaustive]`. Construct them through `new()` or `with_*`
+  builders.
+- `Diagnostics` ranges are enforced by `Ratio`, `StandardDeviation` and `Celsius`.
+- `Diagnostics::temperature_c` is renamed `temperature`, and is a `Celsius`.
 
 ### Changed
 - `MeasurementValue::Matrix`, `Image`, `Audio` and `Spectrum` now wrap private-field structs with

@@ -162,7 +162,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Custom modality extensibility tests (e.g. gravitational, novel chemical signature) §52
 - [x] Full test suite: unit, integration, fusion, replay, fault §48: benchmarks not included
 - [x] Fault tests: missing sensors, sensor disagreement, sensor noise, and calibration failure §48
-- [ ] Benchmarks: high-frequency streams, allocation counts, zero-copy large data §50 — throughput baseline example exists (`cargo run --release --example throughput`); allocation counts need an unsafe GlobalAlloc, which the workspace forbids; no zero-copy benchmark yet
+- [ ] Benchmarks: criterion harness in `benches/streams.rs` (queue, reorder, fusion, pipeline, zero-copy clone). Allocation counts still not measured (needs an unsafe GlobalAlloc, which the workspace forbids); criterion is pinned to 0.7 for MSRV 1.85
 - [ ] Embedded checks: `no_std` on bare metal verified; binary size and an alloc-free subset not yet done §51
 - [x] WASM build verification §41
 - [ ] Rustdoc complete with examples; docs.rs config (metadata set; examples still to add to key types)
@@ -170,7 +170,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Integration example for each of the spec §44 flows (camera, microphone, agri robot, radiation)
 - [x] Final dependency/licence audit (`cargo deny check`) for the current dependency set; repeat before release
 - [ ] Security review: untrusted sensor data, trust metadata §33 — self-review in DESIGN.md; deterministic fuzz-style and property tests added; an independent review and coverage-guided fuzzing are still needed
-- [ ] Semver / API review before 0.1.0 — review done and recorded in DESIGN.md; owner decisions open (see DESIGN.md)
+- [ ] Semver / API review before 0.1.0 — API decisions taken and recorded in DESIGN.md (non_exhaustive plain data, validated diagnostics); owner sign-off still open
 - [ ] Publish `tpt-senses` 0.1.0 to crates.io
 - [ ] Tag release and write CHANGELOG entry
 
