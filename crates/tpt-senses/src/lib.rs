@@ -67,6 +67,7 @@ mod cbor;
 mod control;
 mod entity;
 mod event;
+mod explain;
 mod fusion;
 mod health;
 mod id;
@@ -76,6 +77,7 @@ mod measurement;
 mod modality;
 mod observation;
 mod pipeline;
+mod ports;
 mod profile;
 mod provenance;
 mod record;
@@ -102,6 +104,7 @@ pub use control::{
 };
 pub use entity::{AssociationConfig, EntityAssociation, EntityKind, associate};
 pub use event::{Event, EventKind, movement_event, threshold_event};
+pub use explain::{Explanation, explain};
 pub use fusion::{
     ConfidenceWeighted, Disagreement, FusedObservation, FusionConfig, FusionError, FusionStrategy,
     InverseVariance, ScalarInput, fuse, fuse_presence,
@@ -116,6 +119,7 @@ pub use pipeline::{
     CalibrationStage, FnStage, Pipeline, PipelineError, PipelineOutput, Stage, StageOutcome,
     StageRecord, ValidationStage,
 };
+pub use ports::{AttentionSource, ObservationSink};
 pub use profile::SensoryProfile;
 pub use provenance::{Algorithm, Origin, Provenance, ProvenanceStep};
 pub use record::{RecordError, RecordSink, Recording, replay_through};
