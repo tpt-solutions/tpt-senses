@@ -119,5 +119,5 @@ fn a_blank_image_produces_no_keypoint_observations() {
             keypoints,
         })
         .unwrap();
-    assert!(observations.is_empty());
+    assert_eq!(observations, Vec::<tpt_senses::Observation>::new());
 }
