@@ -21,6 +21,18 @@ allow = [
 ]
 confidence-threshold = 0.93
 
+# Crate-scoped licence exceptions. Each one is reviewed individually; the allow-list above is
+# unchanged. minicbor and minicbor-serde are used by tpt-thought-core (pinned git dependency, see
+# tpt-senses-thought) and are licensed under the Blue Oak Model License 1.0.0, an OSI-approved
+# permissive licence.
+[[licenses.exceptions]]
+name = "minicbor"
+allow = ["BlueOak-1.0.0"]
+
+[[licenses.exceptions]]
+name = "minicbor-serde"
+allow = ["BlueOak-1.0.0"]
+
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
@@ -33,3 +45,9 @@ ignore = []
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# Git sources are allowed only for the two pinned TPT repositories (todo Phase 6). Each pin is a
+# full commit in its crate's Cargo.toml, and each repo is dual-licensed MIT OR Apache-2.0.
+allow-git = [
+    "https://github.com/tpt-solutions/tpt-thought",
+    "https://github.com/tpt-solutions/tpt-anima",
+]
