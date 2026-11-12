@@ -122,7 +122,8 @@ pub use stream::{
     SensorStream,
 };
 pub use temporal::{
-    Freshness, TimingInfo, align_linear, align_nearest, freshness, simultaneous, window_mean,
+    Freshness, TimingInfo, align_linear, align_nearest, freshness, observations_between,
+    simultaneous, window_mean,
 };
 pub use timestamp::{ClockMismatch, ClockSource, Duration, Frequency, Timestamp};
 pub use trust::{AuthenticationStatus, IntegrityStatus, SourceIdentity, TrustLevel, TrustMetadata};

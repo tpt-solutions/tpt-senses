@@ -512,3 +512,81 @@ fn validation_rejects_invalid_uncertainty() {
     let pipeline = Pipeline::new().with_stage(ValidationStage::new(conf(0.0)));
     assert!(pipeline.run(bad).is_err());
 }
+
+// ---- Sensor noise (fault injection, seeded for reproducibility) -----------------------------
+
+/// Deterministic pseudo-random numbers (xorshift64), so the fault test is reproducible.
+struct Rng(u64);
+
+impl Rng {
+    fn next_unit(&mut self) -> f64 {
+        self.0 ^= self.0 << 13;
+        self.0 ^= self.0 >> 7;
+        self.0 ^= self.0 << 17;
+        (self.0 >> 11) as f64 / (1u64 << 53) as f64
+    }
+
+    /// Approximately normal noise with the given standard deviation (sum of 12 uniforms).
+    fn gaussian(&mut self, sigma: f64) -> f64 {
+        let s: f64 = (0..12).map(|_| self.next_unit()).sum();
+        (s - 6.0) * sigma
+    }
+}
+
+#[test]
+fn fusing_noisy_sensors_beats_the_noisy_imprecise_one() {
+    let truth = 25.0;
+    let (sigma_precise, sigma_coarse) = (0.05, 0.8);
+    let cfg = FusionConfig {
+        time_tolerance: Duration::from_millis(1),
+        disagreement_threshold: 100.0,
+    };
+    let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
+
+    let (mut err_coarse, mut err_fused) = (0.0, 0.0);
+    let trials = 300;
+    for trial in 0..trials {
+        let ts = mono(trial as u64 * 1_000_000);
+        let precise = range_reading(
+            1_000 + trial as u64 * 2,
+            1,
+            truth + rng.gaussian(sigma_precise),
+            Some(sigma_precise),
+            ts,
+        );
+        let coarse = range_reading(
+            1_001 + trial as u64 * 2,
+            2,
+            truth + rng.gaussian(sigma_coarse),
+            Some(sigma_coarse),
+            ts,
+        );
+        let fused = fuse(
+            &[precise, coarse.clone()],
+            ObservationId::new(trial as u64),
+            &InverseVariance,
+            &cfg,
+        )
+        .unwrap();
+        let ObservationValue::Scalar(v) = fused.observation.value() else {
+            panic!()
+        };
+        let ObservationValue::Scalar(c) = coarse.value() else {
+            panic!()
+        };
+        err_coarse += (c - truth).abs();
+        err_fused += (v - truth).abs();
+        // Fusion never reports more uncertainty than the best input.
+        let sd = fused
+            .observation
+            .uncertainty()
+            .unwrap()
+            .standard_deviation
+            .unwrap();
+        assert!(sd <= sigma_precise + 1e-12);
+    }
+    assert!(
+        err_fused < err_coarse,
+        "fused error {err_fused} should beat coarse-only error {err_coarse}"
+    );
+}

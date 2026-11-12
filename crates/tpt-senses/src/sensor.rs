@@ -3,7 +3,7 @@
 use alloc::string::String;
 use core::fmt;
 
-use crate::{SensorCapabilities, SensorHealth, SensorId};
+use crate::{CalibrationState, SensorCapabilities, SensorHealth, SensorId, Timestamp};
 
 /// Errors a sensor can report while reading.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -51,6 +51,16 @@ pub trait Sensor {
     /// Current health. Defaults to [`SensorHealth::Unknown`] for sensors that do not report it.
     fn health(&self) -> SensorHealth {
         SensorHealth::Unknown
+    }
+
+    /// Calibration history, for sensors that keep one. Defaults to `None` (not provided).
+    fn calibration(&self) -> Option<&CalibrationState> {
+        None
+    }
+
+    /// Timestamp of the most recent reading, if the sensor tracks it. Defaults to `None`.
+    fn last_reading_at(&self) -> Option<Timestamp> {
+        None
     }
 
     /// Takes one reading.

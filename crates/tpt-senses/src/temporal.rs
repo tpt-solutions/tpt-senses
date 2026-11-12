@@ -5,7 +5,7 @@
 //! and simultaneity is always an explicit tolerance check.
 
 use crate::stream::Sample;
-use crate::{ClockMismatch, Duration, Timestamp};
+use crate::{ClockMismatch, Duration, Observation, Timestamp};
 
 /// The timestamps that describe one piece of data as it moves through the system.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,6 +34,26 @@ impl TimingInfo {
     pub fn latency(&self) -> Option<Duration> {
         self.processed?.duration_since(self.acquired)
     }
+}
+
+/// Observations timestamped in `[start, end)`, in their stored order.
+///
+/// This is a read-only view for reflection and review. It stores nothing. Observations on a
+/// different clock from `start` are never selected, because their position in the interval is
+/// unknown.
+#[must_use]
+pub fn observations_between(
+    observations: &[Observation],
+    start: Timestamp,
+    end: Timestamp,
+) -> alloc::vec::Vec<&Observation> {
+    observations
+        .iter()
+        .filter(|o| {
+            let ts = o.timestamp();
+            ts.is_same_clock(start) && ts.nanos() >= start.nanos() && ts.nanos() < end.nanos()
+        })
+        .collect()
 }
 
 /// Whether two timestamps are simultaneous within `tolerance`.

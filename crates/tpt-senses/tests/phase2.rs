@@ -12,9 +12,9 @@ use tpt_senses::prelude::*;
 use tpt_senses::{
     AuthenticationStatus, BackpressurePolicy, CalibrationKind, CalibrationRecord, CalibrationState,
     CoordinateFrame, Diagnostics, Duration, Event, EventKind, Freshness, Ingest, RateLimiter,
-    ReorderBuffer, Sample, SensorStream, SourceIdentity, SpatialReference, TimingInfo, Transform,
-    Translation, TrustLevel, TrustMetadata, align_linear, align_nearest, freshness, simultaneous,
-    window_mean,
+    ReorderBuffer, Sample, SensorCapabilities, SensorStream, SourceIdentity, SpatialReference,
+    TimingInfo, Transform, Translation, TrustLevel, TrustMetadata, align_linear, align_nearest,
+    freshness, simultaneous, window_mean,
 };
 
 fn mono(ns: u64) -> Timestamp {
@@ -423,4 +423,75 @@ fn rate_limiter_thins_a_high_frequency_stream() {
         .count();
     // 100 samples at 1 ms spacing, limited to one per 10 ms.
     assert_eq!(kept, 10);
+}
+
+// ---- Sensor exposure and history ------------------------------------------------------------
+
+struct Bare {
+    caps: SensorCapabilities,
+    cal: Option<CalibrationState>,
+}
+
+impl Sensor for Bare {
+    type Measurement = Measurement;
+    fn identity(&self) -> SensorId {
+        SensorId::new(77)
+    }
+    fn capabilities(&self) -> &SensorCapabilities {
+        &self.caps
+    }
+    fn calibration(&self) -> Option<&CalibrationState> {
+        self.cal.as_ref()
+    }
+    fn read(&mut self) -> Result<Measurement, SensorError> {
+        Err(SensorError::NotReady)
+    }
+}
+
+#[test]
+fn sensor_exposure_defaults_to_not_provided() {
+    let plain = Bare {
+        caps: SensorCapabilities::new(vec![Modality::Thermal]),
+        cal: None,
+    };
+    assert!(plain.calibration().is_none());
+    assert!(plain.last_reading_at().is_none());
+
+    let mut state = CalibrationState::new();
+    state.record(CalibrationRecord::new(
+        CalibrationKind::Temperature,
+        mono(0),
+    ));
+    let calibrated = Bare {
+        caps: SensorCapabilities::new(vec![Modality::Thermal]),
+        cal: Some(state),
+    };
+    assert_eq!(calibrated.calibration().unwrap().records().len(), 1);
+}
+
+#[test]
+fn history_window_is_half_open_and_clock_aware() {
+    let make = |id: u64, ns: u64, clock: ClockSource| {
+        Observation::new(
+            ObservationId::new(id),
+            Modality::Thermal,
+            Property::new("t"),
+            ObservationValue::Scalar(0.0),
+            Confidence::new(0.5).unwrap(),
+            Timestamp::new(ns, clock),
+            Provenance::new(Origin::Recorded),
+        )
+    };
+    let observations = [
+        make(1, 99, ClockSource::Monotonic),
+        make(2, 100, ClockSource::Monotonic),
+        make(3, 199, ClockSource::Monotonic),
+        make(4, 150, ClockSource::Wall),
+        make(5, 200, ClockSource::Monotonic),
+    ];
+    let picked: Vec<u64> = tpt_senses::observations_between(&observations, mono(100), mono(200))
+        .iter()
+        .map(|o| o.id().get())
+        .collect();
+    assert_eq!(picked, vec![2, 3]);
 }
