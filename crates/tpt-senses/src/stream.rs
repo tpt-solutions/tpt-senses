@@ -260,6 +260,8 @@ pub enum Ingest {
     Buffered,
     /// Arrived after a later point had already been emitted. Discarded and counted.
     Late,
+    /// The buffer was full. Discarded and counted, so memory stays bounded.
+    Overflowed,
 }
 
 /// Restores timestamp order for samples that arrive slightly out of order.
@@ -274,23 +276,28 @@ pub enum Ingest {
 pub struct ReorderBuffer<T> {
     lateness: Duration,
     clock: Option<ClockSource>,
+    capacity: NonZeroUsize,
     pending: Vec<Sample<T>>,
     highest_seen: Option<Timestamp>,
     last_emitted: Option<Timestamp>,
     late_dropped: u64,
+    overflow_dropped: u64,
 }
 
 impl<T> ReorderBuffer<T> {
-    /// Creates a buffer that tolerates samples up to `lateness` behind the newest one.
+    /// Creates a buffer that tolerates samples up to `lateness` behind the newest one and holds
+    /// at most `capacity` samples at a time.
     #[must_use]
-    pub const fn new(lateness: Duration) -> Self {
+    pub const fn new(lateness: Duration, capacity: NonZeroUsize) -> Self {
         Self {
             lateness,
             clock: None,
+            capacity,
             pending: Vec::new(),
             highest_seen: None,
             last_emitted: None,
             late_dropped: 0,
+            overflow_dropped: 0,
         }
     }
 
@@ -317,6 +324,11 @@ impl<T> ReorderBuffer<T> {
                 self.late_dropped += 1;
                 return Ok(Ingest::Late);
             }
+        }
+
+        if self.pending.len() >= self.capacity.get() {
+            self.overflow_dropped += 1;
+            return Ok(Ingest::Overflowed);
         }
 
         let timestamp = sample.timestamp;
@@ -357,6 +369,12 @@ impl<T> ReorderBuffer<T> {
         let out: Vec<Sample<T>> = self.pending.drain(..count).collect();
         self.last_emitted = out.last().map(|s| s.timestamp);
         out
+    }
+
+    /// Samples discarded because the buffer was full.
+    #[must_use]
+    pub const fn overflow_dropped(&self) -> u64 {
+        self.overflow_dropped
     }
 
     /// Samples discarded for arriving after their position had been emitted.
@@ -464,7 +482,7 @@ mod tests {
 
     #[test]
     fn reorder_emits_in_timestamp_order() {
-        let mut rb = ReorderBuffer::new(Duration::from_nanos(100));
+        let mut rb = ReorderBuffer::new(Duration::from_nanos(100), NonZeroUsize::new(64).unwrap());
         for ns in [10u64, 30, 20, 40, 200] {
             assert_eq!(rb.push(Sample::new(t(ns), ns)).unwrap(), Ingest::Buffered);
         }
@@ -476,7 +494,7 @@ mod tests {
 
     #[test]
     fn reorder_discards_and_counts_late_samples() {
-        let mut rb = ReorderBuffer::new(Duration::from_nanos(10));
+        let mut rb = ReorderBuffer::new(Duration::from_nanos(10), NonZeroUsize::new(64).unwrap());
         rb.push(Sample::new(t(100), 'a')).unwrap();
         rb.push(Sample::new(t(200), 'b')).unwrap();
         assert_eq!(rb.pop_ready().len(), 1); // emits 'a'; watermark is 190
@@ -486,7 +504,7 @@ mod tests {
 
     #[test]
     fn reorder_rejects_mixed_clocks() {
-        let mut rb = ReorderBuffer::new(Duration::from_nanos(10));
+        let mut rb = ReorderBuffer::new(Duration::from_nanos(10), NonZeroUsize::new(64).unwrap());
         rb.push(Sample::new(t(1), ())).unwrap();
         let wall = Timestamp::new(2, ClockSource::Wall);
         assert!(rb.push(Sample::new(wall, ())).is_err());

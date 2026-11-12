@@ -152,7 +152,7 @@ fn stream_ends_when_inner_ends() {
 
 #[test]
 fn out_of_order_messages_are_restored() {
-    let mut rb = ReorderBuffer::new(Duration::from_nanos(50));
+    let mut rb = ReorderBuffer::new(Duration::from_nanos(50), cap(64));
     for ns in [30u64, 10, 20, 90, 60] {
         rb.push(Sample::new(mono(ns), ns)).unwrap();
     }
@@ -165,7 +165,7 @@ fn out_of_order_messages_are_restored() {
 
 #[test]
 fn message_older_than_emitted_point_is_late() {
-    let mut rb = ReorderBuffer::new(Duration::from_nanos(5));
+    let mut rb = ReorderBuffer::new(Duration::from_nanos(5), cap(64));
     rb.push(Sample::new(mono(100), "a")).unwrap();
     rb.push(Sample::new(mono(200), "b")).unwrap();
     let _ = rb.pop_ready();
@@ -174,6 +174,28 @@ fn message_older_than_emitted_point_is_late() {
         Ingest::Late
     );
     assert_eq!(rb.late_dropped(), 1);
+}
+
+#[test]
+fn reorder_buffer_is_bounded_under_flood() {
+    // A burst larger than the buffer must not grow memory; the excess is counted.
+    let mut rb = ReorderBuffer::new(Duration::from_secs(3600), cap(4));
+    let outcomes: Vec<Ingest> = (0..10u64)
+        .map(|ns| rb.push(Sample::new(mono(ns), ns)).unwrap())
+        .collect();
+    assert_eq!(
+        outcomes.iter().filter(|o| **o == Ingest::Buffered).count(),
+        4
+    );
+    assert_eq!(
+        outcomes
+            .iter()
+            .filter(|o| **o == Ingest::Overflowed)
+            .count(),
+        6
+    );
+    assert_eq!(rb.pending_len(), 4);
+    assert_eq!(rb.overflow_dropped(), 6);
 }
 
 #[test]
