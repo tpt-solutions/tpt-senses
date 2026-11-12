@@ -5,9 +5,10 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+readme = "README.md"
 authors.workspace = true
-keywords.workspace = true
-categories.workspace = true
+keywords = ["sensors", "perception", "computer-vision", "optical-flow", "camera"]
+categories = ["multimedia::images", "science::robotics"]
 
 [dependencies]
 tpt-senses = { version = "0.1.0", path = "../tpt-senses" }
