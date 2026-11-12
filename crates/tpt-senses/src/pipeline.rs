@@ -74,6 +74,26 @@ pub struct PipelineError {
 }
 
 /// An ordered list of stages.
+///
+/// ```
+/// use tpt_senses::prelude::*;
+/// use tpt_senses::{Confidence, Pipeline, ValidationStage};
+///
+/// let pipeline = Pipeline::new().with_stage(ValidationStage::new(Confidence::new(0.5).unwrap()));
+/// let observation = Observation::new(
+///     ObservationId::new(1),
+///     Modality::Thermal,
+///     Property::new("temperature_state"),
+///     ObservationValue::Categorical("normal".into()),
+///     Confidence::new(0.9).unwrap(),
+///     Timestamp::new(0, ClockSource::Monotonic),
+///     Provenance::new(Origin::Real),
+/// );
+/// let output = pipeline.run(observation).unwrap();
+/// assert_eq!(output.observation.state(), ObservationState::Validated);
+/// assert_eq!(output.trace.len(), 1);
+/// ```
+/// An ordered list of stages.
 #[derive(Default)]
 pub struct Pipeline {
     stages: Vec<Box<dyn Stage>>,

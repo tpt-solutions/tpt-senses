@@ -273,6 +273,37 @@ pub fn fuse(
 /// Probabilities are kept inside `[EPS, 1 - EPS]` so that odds stay finite.
 const EPS: f64 = 1e-6;
 
+/// # Examples
+///
+/// ```
+/// use tpt_senses::prelude::*;
+/// use tpt_senses::{Duration, FusionConfig, fuse_presence};
+///
+/// let at = Timestamp::new(0, ClockSource::Monotonic);
+/// let detect = |id, modality, c| {
+///     Observation::new(
+///         ObservationId::new(id),
+///         modality,
+///         Property::new("person_present"),
+///         ObservationValue::Boolean(true),
+///         Confidence::new(c).unwrap(),
+///         at,
+///         Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(id))),
+///     )
+/// };
+/// let config = FusionConfig {
+///     time_tolerance: Duration::from_millis(5),
+///     disagreement_threshold: 0.5,
+/// };
+/// let fused = fuse_presence(
+///     &[detect(1, Modality::Visual, 0.7), detect(2, Modality::Thermal, 0.6)],
+///     ObservationId::new(9),
+///     &config,
+/// )
+/// .unwrap();
+/// assert_eq!(fused.observation.value(), &ObservationValue::Boolean(true));
+/// assert!(fused.observation.confidence().get() > 0.7);
+/// ```
 /// Fuses boolean detections of one property from any number of modalities (spec §38).
 ///
 /// Each input says "true" or "false" with a confidence. The evidence is pooled by multiplying

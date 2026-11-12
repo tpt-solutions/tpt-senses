@@ -154,6 +154,33 @@ impl<T> BoundedQueue<T> {
     }
 }
 
+/// # Examples
+///
+/// ```
+/// use core::num::NonZeroUsize;
+/// use core::pin::pin;
+/// use core::task::{Context, Poll, Waker};
+/// use futures_core::Stream;
+/// use tpt_senses::{BackpressurePolicy, SensorStream};
+///
+/// // A stream that yields three readings and then ends.
+/// struct Readings(Vec<u32>);
+/// impl Stream for Readings {
+///     type Item = u32;
+///     fn poll_next(mut self: core::pin::Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Option<u32>> {
+///         Poll::Ready(if self.0.is_empty() { None } else { Some(self.0.remove(0)) })
+///     }
+/// }
+///
+/// let mut stream = pin!(SensorStream::new(
+///     Readings(vec![1, 2, 3]),
+///     NonZeroUsize::new(8).unwrap(),
+///     BackpressurePolicy::DropOldest,
+/// ));
+/// let mut cx = Context::from_waker(Waker::noop());
+/// assert_eq!(stream.as_mut().poll_next(&mut cx), Poll::Ready(Some(1)));
+/// assert_eq!(stream.dropped_total(), 0);
+/// ```
 /// A [`futures_core::Stream`] adapter that buffers items from an inner stream.
 ///
 /// Each poll pulls up to `budget` items from the inner stream into a [`BoundedQueue`] (so the

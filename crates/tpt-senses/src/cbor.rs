@@ -31,6 +31,16 @@ impl fmt::Display for CodecError {
 #[cfg(feature = "std")]
 impl std::error::Error for CodecError {}
 
+/// # Examples
+///
+/// ```
+/// use tpt_senses::{Confidence, from_cbor, to_cbor};
+///
+/// let c = Confidence::new(0.25).unwrap();
+/// let bytes = to_cbor(&c).unwrap();
+/// let back: Confidence = from_cbor(&bytes).unwrap();
+/// assert_eq!(back, c);
+/// ```
 /// Encodes a value as CBOR.
 ///
 /// # Errors
