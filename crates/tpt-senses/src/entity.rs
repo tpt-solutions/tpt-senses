@@ -360,6 +360,9 @@ mod tests {
             t(0),
             Provenance::new(Origin::Real),
         );
-        assert_eq!(associate(&[no_pos], &EntityKind::Object, EntityId::new(1), &config()).len(), 0);
+        assert_eq!(
+            associate(&[no_pos], &EntityKind::Object, EntityId::new(1), &config()).len(),
+            0
+        );
     }
 }
