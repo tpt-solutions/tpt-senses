@@ -3,7 +3,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::SensorId;
+use crate::{CalibrationRecord, SensorId};
 
 /// Where the data ultimately came from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -64,6 +64,8 @@ pub enum ProvenanceStep {
     Sensor(SensorId),
     /// A processing algorithm applied to the data.
     Algorithm(Algorithm),
+    /// A calibration in effect when the data was produced (spec §32).
+    Calibration(CalibrationRecord),
 }
 
 /// The full, ordered source chain of a measurement or observation.
@@ -111,6 +113,14 @@ impl Provenance {
     pub fn sensors(&self) -> impl Iterator<Item = SensorId> + '_ {
         self.chain.iter().filter_map(|step| match step {
             ProvenanceStep::Sensor(id) => Some(*id),
+            _ => None,
+        })
+    }
+
+    /// The calibration records in the chain.
+    pub fn calibrations(&self) -> impl Iterator<Item = &CalibrationRecord> + '_ {
+        self.chain.iter().filter_map(|step| match step {
+            ProvenanceStep::Calibration(record) => Some(record),
             _ => None,
         })
     }

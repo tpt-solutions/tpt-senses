@@ -6,7 +6,7 @@ use core::fmt;
 
 use crate::{
     Confidence, EntityId, Measurement, Modality, ObservationId, Provenance, ProvenanceStep,
-    Timestamp, Uncertainty,
+    SpatialReference, Timestamp, TrustMetadata, Uncertainty,
 };
 
 /// The property an observation describes, e.g. `possible_disease` or `temperature_state`.
@@ -117,8 +117,10 @@ pub struct Observation {
     value: ObservationValue,
     confidence: Confidence,
     uncertainty: Option<Uncertainty>,
+    location: Option<SpatialReference>,
     timestamp: Timestamp,
     provenance: Provenance,
+    trust: TrustMetadata,
     state: ObservationState,
 }
 
@@ -142,8 +144,10 @@ impl Observation {
             value,
             confidence,
             uncertainty: None,
+            location: None,
             timestamp,
             provenance,
+            trust: TrustMetadata::unverified(),
             state: ObservationState::Raw,
         }
     }
@@ -171,8 +175,10 @@ impl Observation {
             value,
             confidence,
             uncertainty: measurement.uncertainty.clone(),
+            location: None,
             timestamp: measurement.timestamp,
             provenance,
+            trust: TrustMetadata::unverified(),
             state: ObservationState::Processed,
         }
     }
@@ -188,6 +194,20 @@ impl Observation {
     #[must_use]
     pub fn with_uncertainty(mut self, uncertainty: Uncertainty) -> Self {
         self.uncertainty = Some(uncertainty);
+        self
+    }
+
+    /// Sets where the observation was made (builder style).
+    #[must_use]
+    pub fn with_location(mut self, location: SpatialReference) -> Self {
+        self.location = Some(location);
+        self
+    }
+
+    /// Sets trust metadata (builder style). Observations are untrusted until this is called.
+    #[must_use]
+    pub fn with_trust(mut self, trust: TrustMetadata) -> Self {
+        self.trust = trust;
         self
     }
 
@@ -259,6 +279,18 @@ impl Observation {
     #[must_use]
     pub const fn uncertainty(&self) -> Option<&Uncertainty> {
         self.uncertainty.as_ref()
+    }
+
+    /// Where the observation was made, if known.
+    #[must_use]
+    pub const fn location(&self) -> Option<&SpatialReference> {
+        self.location.as_ref()
+    }
+
+    /// Trust metadata. Defaults to unverified; an observation is never trusted by default.
+    #[must_use]
+    pub const fn trust(&self) -> &TrustMetadata {
+        &self.trust
     }
 
     /// When the underlying data was taken.
@@ -333,6 +365,21 @@ mod tests {
         let err = o.advance_to(ObservationState::Validated).unwrap_err();
         assert_eq!(err.from, ObservationState::Fused);
         assert_eq!(o.state(), ObservationState::Fused);
+    }
+
+    #[test]
+    fn new_observations_are_untrusted() {
+        let o = Observation::new(
+            ObservationId::new(7),
+            Modality::Visual,
+            Property::new("presence"),
+            ObservationValue::Boolean(true),
+            Confidence::new(0.9).unwrap(),
+            Timestamp::new(0, ClockSource::Unknown),
+            Provenance::new(Origin::Unknown),
+        );
+        assert_eq!(o.trust(), &TrustMetadata::unverified());
+        assert!(o.location().is_none());
     }
 
     #[test]

@@ -21,3 +21,4 @@ std = []
 workspace = true
 
 [dependencies]
+futures-core = { version = "0.3", default-features = false }

@@ -59,20 +59,29 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+mod calibration;
 mod capability;
+mod event;
 mod health;
 mod id;
+mod math;
 mod measurement;
 mod modality;
 mod observation;
 mod provenance;
 mod sensor;
+mod spatial;
+mod stream;
+mod temporal;
 mod timestamp;
+mod trust;
 mod uncertainty;
 
+pub use calibration::{CalibrationKind, CalibrationRecord, CalibrationState};
 pub use capability::{
     AuditoryCapability, Range, Resolution, SensorCapabilities, SpectralRange, VisionCapability,
 };
+pub use event::{Event, EventKind, movement_event, threshold_event};
 pub use health::{CalibrationStatus, Diagnostics, SensorHealth};
 pub use id::{EntityId, MeasurementId, ObservationId, SensorId};
 pub use measurement::{Measurement, MeasurementValue, SharedBuffer};
@@ -80,7 +89,16 @@ pub use modality::Modality;
 pub use observation::{LifecycleError, Observation, ObservationState, ObservationValue, Property};
 pub use provenance::{Algorithm, Origin, Provenance, ProvenanceStep};
 pub use sensor::{Sensor, SensorError};
+pub use spatial::{CoordinateFrame, Point3, SpatialReference, Transform, Translation};
+pub use stream::{
+    BackpressurePolicy, BoundedQueue, Ingest, PushOutcome, RateLimiter, ReorderBuffer, Sample,
+    SensorStream,
+};
+pub use temporal::{
+    Freshness, TimingInfo, align_linear, align_nearest, freshness, simultaneous, window_mean,
+};
 pub use timestamp::{ClockMismatch, ClockSource, Duration, Frequency, Timestamp};
+pub use trust::{AuthenticationStatus, IntegrityStatus, SourceIdentity, TrustLevel, TrustMetadata};
 pub use uncertainty::{Accuracy, Bounds, Confidence, Distribution, Precision, Uncertainty};
 
 /// Convenience re-exports of the most commonly used types.
