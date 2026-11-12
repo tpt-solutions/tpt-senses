@@ -61,13 +61,17 @@ extern crate std;
 
 mod calibration;
 mod capability;
+mod entity;
 mod event;
+mod fusion;
 mod health;
 mod id;
+mod internal;
 mod math;
 mod measurement;
 mod modality;
 mod observation;
+mod pipeline;
 mod provenance;
 mod sensor;
 mod spatial;
@@ -76,17 +80,28 @@ mod temporal;
 mod timestamp;
 mod trust;
 mod uncertainty;
+mod world;
 
 pub use calibration::{CalibrationKind, CalibrationRecord, CalibrationState};
 pub use capability::{
     AuditoryCapability, Range, Resolution, SensorCapabilities, SpectralRange, VisionCapability,
 };
+pub use entity::{AssociationConfig, EntityAssociation, EntityKind, associate};
 pub use event::{Event, EventKind, movement_event, threshold_event};
+pub use fusion::{
+    ConfidenceWeighted, Disagreement, FusedObservation, FusionConfig, FusionError, FusionStrategy,
+    InverseVariance, ScalarInput, fuse,
+};
 pub use health::{CalibrationStatus, Diagnostics, SensorHealth};
 pub use id::{EntityId, MeasurementId, ObservationId, SensorId};
+pub use internal::{InternalMetric, MetaSignal, internal_observation, meta_observation};
 pub use measurement::{Measurement, MeasurementValue, SharedBuffer};
 pub use modality::Modality;
 pub use observation::{LifecycleError, Observation, ObservationState, ObservationValue, Property};
+pub use pipeline::{
+    CalibrationStage, FnStage, Pipeline, PipelineError, PipelineOutput, Stage, StageOutcome,
+    StageRecord, ValidationStage,
+};
 pub use provenance::{Algorithm, Origin, Provenance, ProvenanceStep};
 pub use sensor::{Sensor, SensorError};
 pub use spatial::{CoordinateFrame, Point3, SpatialReference, Transform, Translation};
@@ -100,6 +115,7 @@ pub use temporal::{
 pub use timestamp::{ClockMismatch, ClockSource, Duration, Frequency, Timestamp};
 pub use trust::{AuthenticationStatus, IntegrityStatus, SourceIdentity, TrustLevel, TrustMetadata};
 pub use uncertainty::{Accuracy, Bounds, Confidence, Distribution, Precision, Uncertainty};
+pub use world::{EntityView, WorldState};
 
 /// Convenience re-exports of the most commonly used types.
 pub mod prelude {
