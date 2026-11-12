@@ -106,7 +106,7 @@ pub use fusion::{
     ConfidenceWeighted, Disagreement, FusedObservation, FusionConfig, FusionError, FusionStrategy,
     InverseVariance, ScalarInput, fuse, fuse_presence,
 };
-pub use health::{CalibrationStatus, Diagnostics, SensorHealth};
+pub use health::{CalibrationStatus, Celsius, Diagnostics, Ratio, SensorHealth};
 pub use id::{EntityId, MeasurementId, ObservationId, SensorId};
 pub use internal::{InternalMetric, MetaSignal, internal_observation, meta_observation};
 pub use measurement::{Measurement, MeasurementValue, SharedBuffer};

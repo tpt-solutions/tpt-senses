@@ -12,9 +12,9 @@ use tpt_senses::prelude::*;
 use tpt_senses::{
     AuthenticationStatus, BackpressurePolicy, CalibrationKind, CalibrationRecord, CalibrationState,
     CoordinateFrame, Diagnostics, Duration, Event, EventKind, Freshness, Ingest, RateLimiter,
-    ReorderBuffer, Sample, SensorCapabilities, SensorStream, SourceIdentity, SpatialReference,
-    TimingInfo, Transform, Translation, TrustLevel, TrustMetadata, align_linear, align_nearest,
-    freshness, simultaneous, window_mean,
+    Ratio, ReorderBuffer, Sample, SensorCapabilities, SensorStream, SourceIdentity,
+    SpatialReference, StandardDeviation, TimingInfo, Transform, Translation, TrustLevel,
+    TrustMetadata, align_linear, align_nearest, freshness, simultaneous, window_mean,
 };
 
 fn mono(ns: u64) -> Timestamp {
@@ -309,14 +309,12 @@ fn expired_calibration_blocks_use() {
 
 #[test]
 fn diagnostics_capture_noise_and_drops() {
-    let diag = Diagnostics {
-        signal_quality: Some(0.2),
-        noise: Some(3.5),
-        drop_rate: Some(0.1),
-        ..Default::default()
-    };
-    assert!(diag.signal_quality.unwrap() < 0.5);
-    assert!(diag.noise.unwrap() > 1.0);
+    let diag = Diagnostics::new()
+        .with_signal_quality(Ratio::new(0.2).unwrap())
+        .with_noise(StandardDeviation::new(3.5).unwrap())
+        .with_drop_rate(Ratio::new(0.1).unwrap());
+    assert!(diag.signal_quality.unwrap().get() < 0.5);
+    assert!(diag.noise.unwrap().get() > 1.0);
 }
 
 // ---- Trust ----------------------------------------------------------------------------------
