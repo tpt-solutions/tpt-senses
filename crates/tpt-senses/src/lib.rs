@@ -62,6 +62,8 @@ extern crate std;
 mod adapter;
 mod calibration;
 mod capability;
+#[cfg(feature = "cbor")]
+mod cbor;
 mod control;
 mod entity;
 mod event;
@@ -91,6 +93,8 @@ pub use calibration::{CalibrationKind, CalibrationRecord, CalibrationState};
 pub use capability::{
     AuditoryCapability, Range, Resolution, SensorCapabilities, SpectralRange, VisionCapability,
 };
+#[cfg(feature = "cbor")]
+pub use cbor::{CodecError, from_cbor, to_cbor};
 pub use control::{
     AttentionHint, InformationNeed, InformationRequest, ParameterChangeOutcome,
     ParameterChangeRequest, ParameterKind, SensorCandidate, attention_sampling,

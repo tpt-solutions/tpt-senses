@@ -18,6 +18,8 @@ std = []
 # Serialization of the observation model. Deserialization goes through the same validating
 # constructors as in-memory code, so untrusted input cannot create invalid values.
 serde = ["dep:serde"]
+# CBOR encoding of the serde-enabled observation model (cbor4ii, MIT).
+cbor = ["serde", "dep:cbor4ii"]
 
 
 [package.metadata.docs.rs]
@@ -29,6 +31,8 @@ workspace = true
 [dependencies]
 futures-core = { version = "0.3", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive", "alloc", "rc"], optional = true }
+
+cbor4ii = { version = "1.2", default-features = false, features = ["serde1"], optional = true }
 
 [dev-dependencies]
 serde_json = "1"
