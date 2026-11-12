@@ -9,6 +9,7 @@ use core::fmt;
 /// exist yet (for example a gravitational or novel chemical signature) without changing the core.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Modality {
     /// Light-based imaging.
     Visual,

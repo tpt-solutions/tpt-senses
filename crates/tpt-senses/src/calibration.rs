@@ -8,6 +8,7 @@ use crate::Timestamp;
 /// The kind of calibration applied.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum CalibrationKind {
     /// Sensor-internal parameters (focal length, distortion, ...).
     Intrinsic,
@@ -25,6 +26,7 @@ pub enum CalibrationKind {
 
 /// One calibration applied to a sensor at a point in time.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CalibrationRecord {
     /// What was calibrated.
     pub kind: CalibrationKind,

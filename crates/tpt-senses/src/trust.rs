@@ -9,6 +9,7 @@ use alloc::string::String;
 /// Identity of the source that produced the data (e.g. a device certificate fingerprint or a
 /// service name). Free-form, so that different identity schemes can be represented.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SourceIdentity(String);
 
 impl SourceIdentity {
@@ -28,6 +29,7 @@ impl SourceIdentity {
 /// Whether the source proved who it is.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum AuthenticationStatus {
     /// Source identity verified cryptographically.
     Authenticated,
@@ -41,6 +43,7 @@ pub enum AuthenticationStatus {
 /// Whether the data is unchanged since the source produced it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum IntegrityStatus {
     /// Integrity verified (e.g. signature or checksum matched).
     Verified,
@@ -54,6 +57,7 @@ pub enum IntegrityStatus {
 /// How much the consumer should rely on the data.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TrustLevel {
     /// Known to be unreliable or corrupted.
     Untrusted,
@@ -66,6 +70,7 @@ pub enum TrustLevel {
 
 /// Trust metadata attached to an observation.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct TrustMetadata {
     /// Who produced the data, if known.
     pub source: Option<SourceIdentity>,

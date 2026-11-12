@@ -11,6 +11,7 @@ use crate::{
 
 /// The property an observation describes, e.g. `possible_disease` or `temperature_state`.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Property(String);
 
 impl Property {
@@ -36,6 +37,7 @@ impl fmt::Display for Property {
 /// The value an observation asserts about its property.
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ObservationValue {
     /// True/false.
     Boolean(bool),
@@ -53,6 +55,7 @@ pub enum ObservationValue {
 /// can only move forward.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ObservationState {
     /// Just produced; nothing checked.
     Raw,
@@ -109,6 +112,7 @@ impl std::error::Error for LifecycleError {}
 /// An observation is evidence, not fact: it carries a [`Confidence`], its [`Provenance`] and a
 /// lifecycle state. Nothing in this type marks it as true.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Observation {
     id: ObservationId,
     subject: Option<EntityId>,

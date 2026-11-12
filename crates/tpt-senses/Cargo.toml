@@ -15,6 +15,9 @@ default = ["std"]
 # Enables std integrations (std::error::Error impls). The core always requires `alloc`;
 # an alloc-free subset is tracked separately (todo Phase 7, spec §51).
 std = []
+# Serialization of the observation model. Deserialization goes through the same validating
+# constructors as in-memory code, so untrusted input cannot create invalid values.
+serde = ["dep:serde"]
 
 
 [package.metadata.docs.rs]
@@ -25,3 +28,7 @@ workspace = true
 
 [dependencies]
 futures-core = { version = "0.3", default-features = false }
+serde = { version = "1", default-features = false, features = ["derive", "alloc"], optional = true }
+
+[dev-dependencies]
+serde_json = "1"

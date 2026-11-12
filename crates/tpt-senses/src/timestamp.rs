@@ -8,6 +8,7 @@ use core::cmp::Ordering;
 /// The clock that produced a timestamp.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ClockSource {
     /// Monotonic clock: never goes backwards, arbitrary epoch.
     Monotonic,
@@ -23,6 +24,7 @@ pub enum ClockSource {
 
 /// A point in time, stored as nanoseconds since the epoch of its clock.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Timestamp {
     nanos: u64,
     clock: ClockSource,
@@ -122,6 +124,7 @@ impl PartialOrd for Timestamp {
 
 /// A non-negative span of time, in nanoseconds.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Duration {
     nanos: u64,
 }

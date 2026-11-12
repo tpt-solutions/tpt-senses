@@ -7,6 +7,7 @@ macro_rules! define_id {
         $(#[$meta])*
         #[doc = $doc]
         #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
         pub struct $name(u64);
 
         impl $name {

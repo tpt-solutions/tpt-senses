@@ -8,6 +8,7 @@ use crate::{CalibrationRecord, SensorId};
 /// Where the data ultimately came from.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Origin {
     /// Produced by real hardware observing the physical world.
     Real,
@@ -23,6 +24,7 @@ pub enum Origin {
 
 /// A processing algorithm and the parameters it was run with.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Algorithm {
     /// Algorithm name, e.g. `detector`.
     pub name: String,
@@ -54,6 +56,7 @@ impl Algorithm {
 /// One link in the chain from hardware to observation.
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ProvenanceStep {
     /// A physical device, identified by a free-form name or serial.
     Hardware {
@@ -70,6 +73,7 @@ pub enum ProvenanceStep {
 
 /// The full, ordered source chain of a measurement or observation.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Provenance {
     origin: Origin,
     chain: Vec<ProvenanceStep>,

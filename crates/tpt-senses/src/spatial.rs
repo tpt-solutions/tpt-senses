@@ -12,6 +12,7 @@ pub type Point3 = [f64; 3];
 /// The frame a position is expressed in.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum CoordinateFrame {
     /// Fixed, global frame.
     World,
@@ -29,6 +30,7 @@ pub enum CoordinateFrame {
 
 /// A position together with the frame it is expressed in.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SpatialReference {
     /// The frame of `position`.
     pub frame: CoordinateFrame,

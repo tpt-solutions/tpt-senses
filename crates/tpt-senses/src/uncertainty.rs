@@ -6,6 +6,11 @@
 
 /// A confidence score in the closed range `[0.0, 1.0]`.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "f64", into = "f64")
+)]
 pub struct Confidence(f64);
 
 impl Confidence {
@@ -30,6 +35,11 @@ impl Confidence {
 
 /// Repeatability of a measurement (spread under identical conditions). Non-negative, finite.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "f64", into = "f64")
+)]
 pub struct Precision(f64);
 
 impl Precision {
@@ -48,6 +58,11 @@ impl Precision {
 
 /// Closeness to the true value (absolute bound on error or bias). Non-negative, finite.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "f64", into = "f64")
+)]
 pub struct Accuracy(f64);
 
 impl Accuracy {
@@ -66,6 +81,11 @@ impl Accuracy {
 
 /// A closed interval `[lower, upper]`.
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "BoundsWire", into = "BoundsWire")
+)]
 pub struct Bounds {
     lower: f64,
     upper: f64,
@@ -100,6 +120,7 @@ impl Bounds {
 /// The assumed shape of an error distribution.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Distribution {
     /// Normal (Gaussian) error.
     Gaussian,
@@ -111,6 +132,11 @@ pub enum Distribution {
 
 /// Quantified uncertainty of a measurement or observation. All parts are optional.
 #[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "UncertaintyWire", into = "UncertaintyWire")
+)]
 pub struct Uncertainty {
     /// Standard deviation of the value. Should be finite and non-negative; see [`Self::is_valid`].
     pub standard_deviation: Option<f64>,
@@ -130,6 +156,112 @@ impl Uncertainty {
     pub fn is_valid(&self) -> bool {
         self.standard_deviation
             .is_none_or(|sd| sd.is_finite() && sd >= 0.0)
+    }
+}
+
+#[cfg(feature = "serde")]
+#[derive(serde::Serialize, serde::Deserialize)]
+struct BoundsWire {
+    lower: f64,
+    upper: f64,
+}
+
+#[cfg(feature = "serde")]
+#[derive(serde::Serialize, serde::Deserialize)]
+struct UncertaintyWire {
+    standard_deviation: Option<f64>,
+    precision: Option<Precision>,
+    accuracy: Option<Accuracy>,
+    bounds: Option<Bounds>,
+    distribution: Option<Distribution>,
+}
+
+// Serde support. Every type with an invariant deserializes through the same validation as the
+// constructors above, so untrusted input cannot produce an out-of-range value.
+#[cfg(feature = "serde")]
+mod serde_support {
+    use super::{
+        Accuracy, Bounds, BoundsWire, Confidence, Precision, Uncertainty, UncertaintyWire,
+    };
+
+    impl TryFrom<f64> for Confidence {
+        type Error = &'static str;
+        fn try_from(value: f64) -> Result<Self, Self::Error> {
+            Self::new(value).ok_or("confidence must be finite and within [0, 1]")
+        }
+    }
+    impl From<Confidence> for f64 {
+        fn from(value: Confidence) -> Self {
+            value.get()
+        }
+    }
+
+    impl TryFrom<f64> for Precision {
+        type Error = &'static str;
+        fn try_from(value: f64) -> Result<Self, Self::Error> {
+            Self::new(value).ok_or("precision must be finite and non-negative")
+        }
+    }
+    impl From<Precision> for f64 {
+        fn from(value: Precision) -> Self {
+            value.get()
+        }
+    }
+
+    impl TryFrom<f64> for Accuracy {
+        type Error = &'static str;
+        fn try_from(value: f64) -> Result<Self, Self::Error> {
+            Self::new(value).ok_or("accuracy must be finite and non-negative")
+        }
+    }
+    impl From<Accuracy> for f64 {
+        fn from(value: Accuracy) -> Self {
+            value.get()
+        }
+    }
+
+    impl TryFrom<BoundsWire> for Bounds {
+        type Error = &'static str;
+        fn try_from(wire: BoundsWire) -> Result<Self, Self::Error> {
+            Self::new(wire.lower, wire.upper).ok_or("bounds must be finite with lower <= upper")
+        }
+    }
+    impl From<Bounds> for BoundsWire {
+        fn from(bounds: Bounds) -> Self {
+            Self {
+                lower: bounds.lower(),
+                upper: bounds.upper(),
+            }
+        }
+    }
+
+    impl TryFrom<UncertaintyWire> for Uncertainty {
+        type Error = &'static str;
+        fn try_from(wire: UncertaintyWire) -> Result<Self, Self::Error> {
+            let u = Uncertainty {
+                standard_deviation: wire.standard_deviation,
+                precision: wire.precision,
+                accuracy: wire.accuracy,
+                bounds: wire.bounds,
+                distribution: wire.distribution,
+            };
+            if u.is_valid() {
+                Ok(u)
+            } else {
+                Err("standard deviation must be finite and non-negative")
+            }
+        }
+    }
+    impl From<Uncertainty> for UncertaintyWire {
+        fn from(u: Uncertainty) -> Self {
+            Self {
+                standard_deviation: u.standard_deviation,
+                precision: u.precision,
+                accuracy: u.accuracy,
+                bounds: u.bounds,
+                distribution: u.distribution,
+            }
+        }
     }
 }
 
