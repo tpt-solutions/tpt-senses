@@ -1,0 +1,19 @@
+[package]
+name = "tpt-senses-thought"
+description = "Adapter from tpt-senses observations to tpt-thought observation input."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+authors.workspace = true
+keywords = ["sensors", "perception", "cognition", "observation", "robotics"]
+categories = ["science::robotics"]
+
+[dependencies]
+tpt-senses = { version = "0.1.0", path = "../tpt-senses" }
+# Pinned to a commit: tpt-thought is git-only, so this crate cannot be published to crates.io.
+tpt-thought-core = { version = "0.1.1", git = "https://github.com/tpt-solutions/tpt-thought", rev = "8f00ec37154f73dc01f152de01ac26c36b98b0a8" }
+
+[lints]
+workspace = true
