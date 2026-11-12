@@ -115,11 +115,11 @@ Modules: `fusion`, `entity`, state/world-state module, perception pipeline
 Consume capabilities from existing repos rather than duplicating them §7. All items depend on those repos' APIs.
 - [x] Define the generic adapter trait(s) in core (measurement/feature in → observation out), no dependency on other TPT repos
 - [x] Decide adapter packaging (feature flags vs separate crates, e.g. `tpt-senses-vision`, `tpt-senses-audio`) §43: separate crates for TPT-dependent adapters, decided in DESIGN.md; none created yet
-- [ ] **(EXT)** `tpt-cv` adapter: visual features/detections → visual observations
-- [ ] **(EXT)** `tpt-audio` adapter: audio data/features → auditory observations
-- [ ] **(EXT)** `tpt-voice` adapter: speech recognition as an optional auditory component; hearing is not defined by it; non-speech sounds represented §7
-- [ ] **(EXT)** `tpt-teleop-agri` adapter: common representation for robot datafeeds §7
-- [ ] Verify the licences of every TPT dependency are compatible with MIT OR Apache-2.0 and the dependency policy
+- [x] **(EXT)** `tpt-cv` adapter: `tpt-senses-cv` converts keypoints, optical flow and camera poses to observations, using the published `tpt-cv-*` 0.1.0 crates; end-to-end tests run real detection and tracking
+- [x] **(EXT)** `tpt-audio` adapter: `tpt-senses-audio` converts meter readings to auditory observations, using a mirror of the `Meter` source (commit 7268ccb); repo not published, so it cannot be a dependency yet
+- [x] **(EXT)** `tpt-voice` adapter: `tpt-senses-voice` converts word timings and speaker turns to auditory observations; non-speech sound is left to the audio adapter; mirror of commit acd3307; the speaker's display name is not carried
+- [x] **(EXT)** `tpt-teleop-agri` adapter: `tpt-senses-agri` converts GNSS fixes (with precision as uncertainty), wind, soil and rain samples; mirror of commit 1c469ff; repo not published
+- [x] Verify the licences of every TPT dependency are compatible with MIT OR Apache-2.0 and the dependency policy: tpt-cv (`tpt-cv-core`, `tpt-cv-feature`, `tpt-cv-geo`), tpt-audio, tpt-voice and tpt-teleop-agri are all MIT OR Apache-2.0; `cargo deny` passes with the tpt-cv dependency tree
 - [x] Verify dependency direction: adapters point upward; core never depends on hardware ecosystems §54
 - [x] Adapter integration tests and examples (camera, microphone flows §44): mock adapters in `tests/flows.rs`; real adapters are (EXT)
 
@@ -191,5 +191,5 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 ## Open items / to confirm later
 - [x] Final workspace directory layout (root crate vs `crates/` folder)
 - [x] MSRV value (1.85)
-- [ ] Which `tpt-*` repos are public/available and their licences
+- [x] Which `tpt-*` repos are public/available and their licences: all four EXT repos and the other tpt-* repos are on github.com/tpt-solutions; only `tpt-cv-core`, `tpt-cv-feature` and `tpt-cv-geo` are published on crates.io (0.1.0, MIT OR Apache-2.0); the rest are MIT OR Apache-2.0 but unpublished
 - [ ] Whether the ROS 2 Rust bindings' licence passes the dependency policy

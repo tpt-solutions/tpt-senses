@@ -132,10 +132,19 @@ receives hardware types.
 
 - The core defines the `Adapter` trait (external input → observations). It has no dependency on
   any TPT repository or hardware ecosystem.
-- **Packaging decision:** adapters that depend on other TPT repositories (`tpt-cv`, `tpt-audio`,
-  `tpt-voice`, `tpt-teleop-agri`) will be separate crates. Feature flags were not chosen, so that
-  the core's dependency list stays small and each adapter's licence can be audited on its own. No
-  adapter crate exists yet, because each needs the external repository's API.
+- **Packaging decision:** each TPT integration is its own crate, so each licence and dependency set
+  can be audited on its own. Feature flags were not chosen, to keep the core's dependency list small.
+- **Publishing constraint:** a crates.io package cannot depend on a git source. Of the TPT repos,
+  only `tpt-cv-core`, `tpt-cv-feature` and `tpt-cv-geo` are on crates.io (MIT OR Apache-2.0). So:
+  - `tpt-senses-cv` depends on those published crates directly, and can be published.
+  - `tpt-senses-audio`, `tpt-senses-voice` and `tpt-senses-agri` cannot depend on their repos
+    (`tpt-audio`, `tpt-voice`, `tpt-teleop-agri` are not published). They define **mirror** input
+    types, each documented with its source file and the commit it was read from. When the source
+    changes, the mirror and its tests change together. They can switch to a real dependency once
+    the source repo is published.
+- **Adapter contracts:** adapters never produce an observation they cannot justify. Non-finite,
+  out-of-range or contradictory input is rejected with `AdapterError::Invalid`. Confidence is set by
+  an explicit config, because none of the source repos reports a probability.
 - Dependencies point upward: adapters depend on the core, never the reverse.
 
 ## Safety boundary (§49, §35)

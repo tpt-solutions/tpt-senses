@@ -43,6 +43,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Deterministic fuzz-style tests of the JSON and CBOR decoders, and property tests of the bounded
   queue and reorder buffer.
 - `throughput` example: a timing baseline for the stream path.
+- Adapter crates for TPT integrations: `tpt-senses-cv` (depends on the published tpt-cv crates),
+  and `tpt-senses-audio`, `tpt-senses-voice`, `tpt-senses-agri`, which mirror the types of the
+  unpublished `tpt-audio`, `tpt-voice` and `tpt-teleop-agri` repositories.
 - Criterion benchmarks in `benches/streams.rs` (dev-dependency, pinned to 0.7 for the MSRV).
 - Presence fusion, a `cbor` feature, and private-field measurement wrappers were added earlier in
   this release cycle; see the sections above.
