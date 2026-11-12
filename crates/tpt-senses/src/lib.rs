@@ -59,8 +59,10 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+mod adapter;
 mod calibration;
 mod capability;
+mod control;
 mod entity;
 mod event;
 mod fusion;
@@ -72,7 +74,9 @@ mod measurement;
 mod modality;
 mod observation;
 mod pipeline;
+mod profile;
 mod provenance;
+mod record;
 mod sensor;
 mod spatial;
 mod stream;
@@ -82,9 +86,15 @@ mod trust;
 mod uncertainty;
 mod world;
 
+pub use adapter::{Adapter, AdapterError};
 pub use calibration::{CalibrationKind, CalibrationRecord, CalibrationState};
 pub use capability::{
     AuditoryCapability, Range, Resolution, SensorCapabilities, SpectralRange, VisionCapability,
+};
+pub use control::{
+    AttentionHint, InformationNeed, InformationRequest, ParameterChangeOutcome,
+    ParameterChangeRequest, ParameterKind, SensorCandidate, attention_sampling,
+    clamp_to_capabilities, information_request_for, select_sensor,
 };
 pub use entity::{AssociationConfig, EntityAssociation, EntityKind, associate};
 pub use event::{Event, EventKind, movement_event, threshold_event};
@@ -102,7 +112,9 @@ pub use pipeline::{
     CalibrationStage, FnStage, Pipeline, PipelineError, PipelineOutput, Stage, StageOutcome,
     StageRecord, ValidationStage,
 };
+pub use profile::SensoryProfile;
 pub use provenance::{Algorithm, Origin, Provenance, ProvenanceStep};
+pub use record::{RecordError, RecordSink, Recording, replay_through};
 pub use sensor::{Sensor, SensorError};
 pub use spatial::{CoordinateFrame, Point3, SpatialReference, Transform, Translation};
 pub use stream::{
