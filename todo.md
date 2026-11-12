@@ -147,8 +147,8 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Active-perception loop types: uncertainty → request additional information → sensor action → new observation §36
 - [x] Example: weed vs not-weed with a multispectral follow-up §36
 - [x] Attention-aware sensing interface (attention changes sensing rates/resolution) §35
-- [ ] **(EXT)** `tpt-anima` interface: observations/events/state out; attention hints in §35 — core side drafted in `ports` (`ObservationSink`, `AttentionSource`); the adapter itself waits on `tpt-anima`'s crate being published or pinned to git, and on mapping its `SensoryModality` onto `Modality`
-- [ ] **(EXT)** `tpt-thought` consumption interface; confirm no hardware knowledge needed §46, §59 — core side drafted in `ports` (`ObservationSink`, `AttentionSource`), which carry no hardware types; the adapter waits on `tpt-thought`'s intake API (v0.1.1, git-only)
+- [ ] **(EXT)** `tpt-anima` interface: observations/events/state out; attention hints in §35 — `tpt-senses-anima` builds memory nodes from observations (CBOR payload, caller-supplied embedder), pinned to `tpt-anima-sse` at `d02d628`. Still open: attention hints in, which need `tpt-anima-ck`'s attention weights mapped to `AttentionHint`
+- [x] **(EXT)** `tpt-thought` consumption interface; confirm no hardware knowledge needed §46, §59 — `tpt-senses-thought` converts observations to `SensedObservation` (timestamp, source, trust, value map) with no hardware types, pinned to `tpt-thought-core` at `8f00ec3`. The question, goal and candidate plans stay with the cognitive caller
 - [x] **(EXT)** `tpt-eve` verification hooks: inspectable transformations, "why do we believe this?" §16, §47 — `explain::explain` in core; `tpt-senses-eve` adapter converts observations to `tpt-eve-core` facts via `EveFactSink`, depending on `tpt-eve-core` 0.1.0 from crates.io
 - [x] Adaptive sensor selection (choose sensors by capability, health, uncertainty)
 - [x] Advanced multimodal fusion across modalities §38: `fuse_presence` pools detections from any modalities; general continuous value fusion across modalities is not yet built
