@@ -30,6 +30,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Integration tests for the spec §44 flows (camera, microphone, agricultural robot, radiation).
 - Optional `serde` feature: serialization of the observation model, with validated deserialization
   for types that carry invariants.
+- `Measurement` and `MeasurementValue` serialize too. Deserialization validates matrix, image,
+  audio and spectrum shapes.
 - `Sensor::calibration()` and `Sensor::last_reading_at()` with defaults.
 - `observations_between()`: a read-only, clock-aware time window over observations.
 - Seeded sensor-noise fault test.

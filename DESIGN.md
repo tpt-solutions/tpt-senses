@@ -115,8 +115,10 @@ action is safe. Attention hints and information requests change *how* the system
   out-of-range value.
 - A deserialized observation keeps the lifecycle state and trust metadata its source recorded.
   Consumers must check `trust()` before relying on it. Deserialization never promotes trust.
-- `MeasurementValue` and `Measurement` are not serializable yet. Their buffers (matrices, images,
-  spectra) need a validated wire form first.
+- `MeasurementValue` and `Measurement` serialize through a wire form. Deserialization rejects a
+  matrix whose element count is not `rows * cols`, an image whose byte count does not match its
+  dimensions, audio that is not whole frames or has no channels, and spectra of unequal length.
+  Audio in memory is built with `MeasurementValue::audio`, which applies the same check.
 
 ## Security self-review (not an independent review)
 
@@ -138,7 +140,6 @@ An independent review is still needed before the 0.1.0 release.
 
 - CBOR, and an on-disk record format in a separate crate (§29, §39). The CBOR crates considered so
   far need a licence decision against `deny.toml` before they are added.
-- Serializing `MeasurementValue` and `Measurement` (validated buffer wire form).
 - Simulation sources, ROS 2 integration, and all `(EXT)` adapters (Phases 4–6).
 - Benchmarks, an alloc-free subset, binary-size checks, and profile-specific fault tests (Phase 7).
 - Meta-signal interpretation and anything that owns cognitive state (belongs to `tpt-thought`).

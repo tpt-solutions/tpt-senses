@@ -135,8 +135,8 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
   - [ ] Choose compression crate(s) that meet licence policy
 - [x] Deterministic replay: same recorded stream → same pipeline → same observations §28: `replay_through`
 - [x] Replay tests (determinism where the pipeline is designed to be) §48
-- [ ] Serialization adapters: `serde` feature and JSON done (validated deserialization); CBOR pending a licence-compatible crate; `MeasurementValue` not yet serializable §39
-- [ ] Serialization round-trip tests (JSON done; CBOR pending)
+- [ ] Serialization adapters: `serde` feature and JSON done, with validated deserialization for observations and measurements; CBOR pending a licence-compatible crate §39
+- [ ] Serialization round-trip tests (JSON done for observations and measurements; CBOR pending)
 - [x] Defer / log decision: MessagePack, Arrow-compatible structures, custom binary §39: recorded in DESIGN.md
 - [x] Optional ML hook crate `tpt-senses-ml` only if justified; core stays ML/LLM/cloud-free §40, §43: not created; core stays ML-free (DESIGN.md)
 - [x] Review: only create each crate when implementation complexity justifies it §8, §43

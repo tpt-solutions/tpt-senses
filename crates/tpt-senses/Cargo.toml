@@ -28,7 +28,7 @@ workspace = true
 
 [dependencies]
 futures-core = { version = "0.3", default-features = false }
-serde = { version = "1", default-features = false, features = ["derive", "alloc"], optional = true }
+serde = { version = "1", default-features = false, features = ["derive", "alloc", "rc"], optional = true }
 
 [dev-dependencies]
 serde_json = "1"

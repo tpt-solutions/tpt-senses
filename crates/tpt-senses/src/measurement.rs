@@ -13,6 +13,11 @@ pub type SharedBuffer<T> = Arc<[T]>;
 /// The payload of a measurement.
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(try_from = "MeasurementValueWire", into = "MeasurementValueWire")
+)]
 pub enum MeasurementValue {
     /// A single number.
     Scalar(f64),
@@ -90,6 +95,21 @@ impl MeasurementValue {
         })
     }
 
+    /// Creates an audio buffer. Returns `None` if `channels` is zero or the sample count is not a
+    /// whole number of frames.
+    #[must_use]
+    pub fn audio(
+        sample_rate: Frequency,
+        channels: u16,
+        samples: SharedBuffer<f32>,
+    ) -> Option<Self> {
+        (channels > 0 && samples.len() % usize::from(channels) == 0).then_some(Self::Audio {
+            sample_rate,
+            channels,
+            samples,
+        })
+    }
+
     /// Creates a spectrum. Returns `None` if the two vectors differ in length.
     #[must_use]
     pub fn spectrum(wavelengths_nm: Vec<f64>, intensities: Vec<f64>) -> Option<Self> {
@@ -102,6 +122,7 @@ impl MeasurementValue {
 
 /// A single measurement from one sensor at one time.
 #[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Measurement {
     /// The sensor that produced this measurement.
     pub sensor: SensorId,
@@ -142,6 +163,136 @@ impl Measurement {
     pub fn with_uncertainty(mut self, uncertainty: Uncertainty) -> Self {
         self.uncertainty = Some(uncertainty);
         self
+    }
+}
+
+// Serde support. Deserialization goes through the validating constructors, so a matrix with the
+// wrong element count, an image with the wrong byte count, or audio that is not whole frames is
+// rejected, as it would be in memory.
+#[cfg(feature = "serde")]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+enum MeasurementValueWire {
+    Scalar(f64),
+    Vector(Vec<f64>),
+    Matrix {
+        rows: usize,
+        cols: usize,
+        data: Vec<f64>,
+    },
+    Image {
+        width: u32,
+        height: u32,
+        channels: u8,
+        data: SharedBuffer<u8>,
+    },
+    Audio {
+        sample_rate_hz: f64,
+        channels: u16,
+        samples: SharedBuffer<f32>,
+    },
+    PointCloud(SharedBuffer<[f32; 3]>),
+    Spectrum {
+        wavelengths_nm: Vec<f64>,
+        intensities: Vec<f64>,
+    },
+    Categorical(String),
+    Structured(Vec<(String, MeasurementValueWire)>),
+    Binary {
+        media_type: String,
+        data: SharedBuffer<u8>,
+    },
+}
+
+#[cfg(feature = "serde")]
+impl TryFrom<MeasurementValueWire> for MeasurementValue {
+    type Error = &'static str;
+
+    fn try_from(wire: MeasurementValueWire) -> Result<Self, Self::Error> {
+        Ok(match wire {
+            MeasurementValueWire::Scalar(v) => Self::Scalar(v),
+            MeasurementValueWire::Vector(v) => Self::Vector(v),
+            MeasurementValueWire::Matrix { rows, cols, data } => Self::matrix(rows, cols, data)
+                .ok_or("matrix data length does not match rows * cols")?,
+            MeasurementValueWire::Image {
+                width,
+                height,
+                channels,
+                data,
+            } => Self::image(width, height, channels, data)
+                .ok_or("image buffer length does not match width * height * channels")?,
+            MeasurementValueWire::Audio {
+                sample_rate_hz,
+                channels,
+                samples,
+            } => {
+                let rate = Frequency::from_hz(sample_rate_hz)
+                    .ok_or("audio sample rate must be finite and positive")?;
+                Self::audio(rate, channels, samples)
+                    .ok_or("audio needs at least one channel and whole frames")?
+            }
+            MeasurementValueWire::PointCloud(points) => Self::PointCloud(points),
+            MeasurementValueWire::Spectrum {
+                wavelengths_nm,
+                intensities,
+            } => Self::spectrum(wavelengths_nm, intensities)
+                .ok_or("spectrum wavelengths and intensities differ in length")?,
+            MeasurementValueWire::Categorical(c) => Self::Categorical(c),
+            MeasurementValueWire::Structured(fields) => {
+                let mut out = Vec::with_capacity(fields.len());
+                for (name, value) in fields {
+                    out.push((name, Self::try_from(value)?));
+                }
+                Self::Structured(out)
+            }
+            MeasurementValueWire::Binary { media_type, data } => Self::Binary { media_type, data },
+        })
+    }
+}
+
+#[cfg(feature = "serde")]
+impl From<MeasurementValue> for MeasurementValueWire {
+    fn from(value: MeasurementValue) -> Self {
+        match value {
+            MeasurementValue::Scalar(v) => Self::Scalar(v),
+            MeasurementValue::Vector(v) => Self::Vector(v),
+            MeasurementValue::Matrix { rows, cols, data } => Self::Matrix { rows, cols, data },
+            MeasurementValue::Image {
+                width,
+                height,
+                channels,
+                data,
+            } => Self::Image {
+                width,
+                height,
+                channels,
+                data,
+            },
+            MeasurementValue::Audio {
+                sample_rate,
+                channels,
+                samples,
+            } => Self::Audio {
+                sample_rate_hz: sample_rate.hz(),
+                channels,
+                samples,
+            },
+            MeasurementValue::PointCloud(points) => Self::PointCloud(points),
+            MeasurementValue::Spectrum {
+                wavelengths_nm,
+                intensities,
+            } => Self::Spectrum {
+                wavelengths_nm,
+                intensities,
+            },
+            MeasurementValue::Categorical(c) => Self::Categorical(c),
+            MeasurementValue::Structured(fields) => Self::Structured(
+                fields
+                    .into_iter()
+                    .map(|(name, v)| (name, Self::from(v)))
+                    .collect(),
+            ),
+            MeasurementValue::Binary { media_type, data } => Self::Binary { media_type, data },
+        }
     }
 }
 
