@@ -1,0 +1,16 @@
+[package]
+name = "tpt-senses-agri"
+description = "Adapter from tpt-teleop-agri field data (GNSS fixes, weather and soil samples) to tpt-senses observations."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+tpt-senses = { version = "0.1.0", path = "../tpt-senses" }
+
+[lints]
+workspace = true

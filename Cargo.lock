@@ -374,12 +374,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "tpt-senses-agri"
+version = "0.1.0"
+dependencies = [
+ "tpt-senses",
+]
+
+[[package]]
+name = "tpt-senses-audio"
+version = "0.1.0"
+dependencies = [
+ "tpt-senses",
+]
+
+[[package]]
 name = "tpt-senses-cv"
 version = "0.1.0"
 dependencies = [
  "tpt-cv-core",
  "tpt-cv-feature",
  "tpt-cv-geo",
+ "tpt-senses",
+]
+
+[[package]]
+name = "tpt-senses-voice"
+version = "0.1.0"
+dependencies = [
  "tpt-senses",
 ]
 

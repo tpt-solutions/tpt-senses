@@ -1,6 +1,12 @@
 [workspace]
 resolver = "3"
-members = ["crates/tpt-senses", "crates/tpt-senses-cv"]
+members = [
+    "crates/tpt-senses",
+    "crates/tpt-senses-agri",
+    "crates/tpt-senses-audio",
+    "crates/tpt-senses-cv",
+    "crates/tpt-senses-voice",
+]
 
 [workspace.package]
 version = "0.1.0"
