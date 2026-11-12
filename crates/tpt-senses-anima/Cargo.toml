@@ -1,0 +1,20 @@
+[package]
+name = "tpt-senses-anima"
+description = "Adapter from tpt-senses observations to tpt-anima memory nodes."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+authors.workspace = true
+keywords = ["sensors", "perception", "memory", "observation", "robotics"]
+categories = ["science::robotics"]
+
+[dependencies]
+# The cbor feature encodes the observation as the memory node's payload.
+tpt-senses = { version = "0.1.0", path = "../tpt-senses", features = ["cbor"] }
+# Pinned to a commit: tpt-anima is git-only, so this crate cannot be published to crates.io.
+tpt-anima-sse = { version = "0.1.0", git = "https://github.com/tpt-solutions/tpt-anima", rev = "d02d628e5caaf387233f41824da1878e33eacf9b" }
+
+[lints]
+workspace = true
