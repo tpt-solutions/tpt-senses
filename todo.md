@@ -171,6 +171,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Final dependency/licence audit (`cargo deny check`) for the current dependency set; repeat before release
 - [ ] Security review: untrusted sensor data, trust metadata §33 — self-review in DESIGN.md; deterministic fuzz-style and property tests added; an independent review and coverage-guided fuzzing are still needed
 - [ ] Semver / API review before 0.1.0 — API decisions taken and recorded in DESIGN.md (non_exhaustive plain data, validated diagnostics); owner sign-off still open
+- [x] Per-crate `README.md`, `CHANGELOG.md`, `keywords` and `categories` for every workspace crate (root CHANGELOG is now an index)
 - [ ] Publish `tpt-senses` 0.1.0 to crates.io
 - [ ] Tag release and write CHANGELOG entry
 
