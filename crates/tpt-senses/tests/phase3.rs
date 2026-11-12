@@ -13,9 +13,10 @@ use tpt_senses::{
     Algorithm, AssociationConfig, CalibrationKind, CalibrationRecord, CalibrationStage,
     CalibrationState, ConfidenceWeighted, CoordinateFrame, Duration, EntityKind, EventKind,
     FnStage, FusionConfig, FusionError, FusionStrategy, InternalMetric, InverseVariance,
-    MetaSignal, Pipeline, Point3, ScalarInput, SpatialReference, StageOutcome, Transform,
-    Translation, TrustLevel, Uncertainty, ValidationStage, WorldState, associate, fuse,
-    internal_observation, meta_observation, movement_event, threshold_event,
+    MetaSignal, Pipeline, Point3, ScalarInput, SensorCandidate, SensorCapabilities, SensorHealth,
+    SpatialReference, StageOutcome, Transform, Translation, TrustLevel, Uncertainty,
+    ValidationStage, WorldState, associate, fuse, fuse_presence, internal_observation,
+    meta_observation, movement_event, select_sensor, threshold_event,
 };
 
 fn mono(ns: u64) -> Timestamp {
@@ -596,4 +597,153 @@ fn fusing_noisy_sensors_beats_the_noisy_imprecise_one() {
         err_fused < err_coarse,
         "fused error {err_fused} should beat coarse-only error {err_coarse}"
     );
+}
+
+// ---- Multimodal presence fusion (§38) -------------------------------------------------------
+
+fn detection(
+    id: u64,
+    modality: Modality,
+    sensor: u64,
+    claim: bool,
+    c: f64,
+    ts: Timestamp,
+) -> Observation {
+    Observation::new(
+        ObservationId::new(id),
+        modality,
+        Property::new("person_present"),
+        ObservationValue::Boolean(claim),
+        conf(c),
+        ts,
+        Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(sensor))),
+    )
+}
+
+fn presence_cfg() -> FusionConfig {
+    FusionConfig {
+        time_tolerance: Duration::from_millis(5),
+        disagreement_threshold: 0.5,
+    }
+}
+
+#[test]
+fn agreeing_modalities_raise_confidence_above_either_alone() {
+    let visual = detection(1, Modality::Visual, 1, true, 0.7, mono(0));
+    let thermal = detection(2, Modality::Thermal, 2, true, 0.6, mono(1_000_000));
+    let fused = fuse_presence(
+        &[visual.clone(), thermal.clone()],
+        ObservationId::new(9),
+        &presence_cfg(),
+    )
+    .unwrap();
+    assert_eq!(fused.observation.value(), &ObservationValue::Boolean(true));
+    assert!(fused.observation.confidence().get() > 0.7);
+    assert!(fused.disagreement.is_none());
+    assert_eq!(
+        fused.observation.modality(),
+        &Modality::Custom("multimodal".into())
+    );
+    assert_eq!(fused.observation.provenance().sensors().count(), 2);
+}
+
+#[test]
+fn stronger_modality_wins_a_disagreement_and_it_is_reported() {
+    // Visual says present with 0.9; thermal says absent with 0.6.
+    let visual = detection(3, Modality::Visual, 1, true, 0.9, mono(0));
+    let thermal = detection(4, Modality::Thermal, 2, false, 0.6, mono(0));
+    let fused = fuse_presence(&[visual, thermal], ObservationId::new(10), &presence_cfg()).unwrap();
+    assert_eq!(fused.observation.value(), &ObservationValue::Boolean(true));
+    let d = fused.disagreement.expect("contradiction must be reported");
+    assert!(d.spread > 0.5);
+}
+
+#[test]
+fn presence_fusion_refuses_asynchronous_and_non_boolean_inputs() {
+    let a = detection(5, Modality::Visual, 1, true, 0.8, mono(0));
+    let late = detection(6, Modality::Thermal, 2, true, 0.8, mono(900_000_000));
+    assert_eq!(
+        fuse_presence(&[a.clone(), late], ObservationId::new(11), &presence_cfg()).unwrap_err(),
+        FusionError::NotSimultaneous
+    );
+    let scalar = Observation::new(
+        ObservationId::new(7),
+        Modality::Thermal,
+        Property::new("person_present"),
+        ObservationValue::Scalar(1.0),
+        conf(0.8),
+        mono(0),
+        Provenance::new(Origin::Real),
+    );
+    assert_eq!(
+        fuse_presence(&[a, scalar], ObservationId::new(12), &presence_cfg()).unwrap_err(),
+        FusionError::NotScalar
+    );
+}
+
+#[test]
+fn certain_contradictory_evidence_stays_finite() {
+    // Extreme confidences must not produce NaN or infinite odds.
+    let yes = detection(8, Modality::Visual, 1, true, 1.0, mono(0));
+    let no = detection(9, Modality::Thermal, 2, false, 1.0, mono(0));
+    let fused = fuse_presence(&[yes, no], ObservationId::new(13), &presence_cfg()).unwrap();
+    assert!(fused.observation.confidence().get().is_finite());
+}
+
+// ---- Missing and faulted sensors (fault injection) -----------------------------------------
+
+#[test]
+fn faulted_sensors_are_skipped_when_selecting_a_source() {
+    let caps = SensorCapabilities::new(vec![Modality::Thermal]);
+    let candidates = [
+        SensorCandidate {
+            sensor: SensorId::new(1),
+            capabilities: caps.clone(),
+            health: SensorHealth::Faulted,
+            noise: Some(0.01),
+        },
+        SensorCandidate {
+            sensor: SensorId::new(2),
+            capabilities: caps.clone(),
+            health: SensorHealth::Offline,
+            noise: Some(0.01),
+        },
+    ];
+    assert_eq!(select_sensor(&candidates, &Modality::Thermal), None);
+}
+
+#[test]
+fn fusion_still_works_when_one_of_two_sensors_is_missing() {
+    let cfg = FusionConfig {
+        time_tolerance: Duration::from_millis(1),
+        disagreement_threshold: 1.0,
+    };
+    let surviving = range_reading(60, 1, 12.0, Some(0.2), mono(0));
+    let fused = fuse(&[surviving], ObservationId::new(14), &InverseVariance, &cfg).unwrap();
+    assert_eq!(
+        fused.observation.provenance().sensors().collect::<Vec<_>>(),
+        vec![SensorId::new(1)]
+    );
+    assert!(fused.disagreement.is_none());
+}
+
+#[test]
+fn a_pipeline_with_no_calibration_stops_rather_than_passing_data_through() {
+    let pipeline = Pipeline::new().with_stage(CalibrationStage::new(
+        CalibrationState::new(),
+        CalibrationKind::Intrinsic,
+        mono(10),
+    ));
+    let obs = detection(10, Modality::Visual, 1, true, 0.9, mono(10));
+    let err = pipeline.run(obs).unwrap_err();
+    assert!(err.reason.contains("no usable"));
+}
+
+#[test]
+fn world_state_is_empty_when_nothing_was_observed() {
+    let world = WorldState::derive(&[], &[]);
+    assert!(world.entities().is_empty());
+    assert!(world.environment().is_empty());
+    assert!(world.body().is_empty());
+    assert!(world.robot_pose().is_none());
 }

@@ -266,6 +266,118 @@ pub fn fuse(
     })
 }
 
+/// Probabilities are kept inside `[EPS, 1 - EPS]` so that odds stay finite.
+const EPS: f64 = 1e-6;
+
+/// Fuses boolean detections of one property from any number of modalities (spec §38).
+///
+/// Each input says "true" or "false" with a confidence. The evidence is pooled by multiplying
+/// odds, which assumes the inputs are independent and that the prior is even (50/50). That
+/// assumption is recorded in the fused provenance. The result is the more probable value, with
+/// the probability of that value as its confidence.
+///
+/// Inputs must describe the same property, be boolean, and be simultaneous within
+/// `config.time_tolerance`. Their modalities may differ.
+///
+/// # Errors
+///
+/// Returns [`FusionError`] for empty input, mismatched properties, non-boolean values, inputs
+/// that are not simultaneous, or mixed clocks.
+pub fn fuse_presence(
+    inputs: &[Observation],
+    id: ObservationId,
+    config: &FusionConfig,
+) -> Result<FusedObservation, FusionError> {
+    let first = inputs.first().ok_or(FusionError::Empty)?;
+
+    let mut scalars = Vec::with_capacity(inputs.len());
+    let mut odds = 1.0_f64;
+    for input in inputs {
+        if input.property() != first.property() {
+            return Err(FusionError::PropertyMismatch);
+        }
+        match simultaneous(first.timestamp(), input.timestamp(), config.time_tolerance) {
+            Some(true) => {}
+            Some(false) => return Err(FusionError::NotSimultaneous),
+            None => {
+                return Err(FusionError::ClockMismatch(ClockMismatch {
+                    expected: first.timestamp().clock(),
+                    found: input.timestamp().clock(),
+                }));
+            }
+        }
+        let ObservationValue::Boolean(claim) = input.value() else {
+            return Err(FusionError::NotScalar);
+        };
+        let c = input.confidence().get();
+        // Probability that the input's claim is the true state.
+        let p_true = if *claim { c } else { 1.0 - c };
+        let p = p_true.clamp(EPS, 1.0 - EPS);
+        odds *= p / (1.0 - p);
+        scalars.push(ScalarInput {
+            value: if *claim { 1.0 } else { 0.0 },
+            confidence: c,
+            sigma: None,
+        });
+    }
+
+    // Posterior probability that the property is true, from the pooled odds.
+    let p_true = if odds.is_finite() {
+        odds / (1.0 + odds)
+    } else {
+        1.0
+    };
+    let claim = p_true >= 0.5;
+    let reported = if claim { p_true } else { 1.0 - p_true };
+    let confidence =
+        Confidence::new(reported.clamp(0.0, 1.0)).ok_or(FusionError::StrategyFailed)?;
+
+    let earliest = inputs
+        .iter()
+        .min_by_key(|o| o.timestamp().nanos())
+        .map_or(first.timestamp(), Observation::timestamp);
+
+    let modality = if inputs.iter().all(|o| o.modality() == first.modality()) {
+        first.modality().clone()
+    } else {
+        Modality::Custom("multimodal".into())
+    };
+
+    let mut provenance = Provenance::new(Origin::Unknown);
+    for input in inputs {
+        for step in input.provenance().chain() {
+            provenance.push(step.clone());
+        }
+    }
+    provenance.push(ProvenanceStep::Algorithm(
+        Algorithm::new("presence-odds-pooling", "1")
+            .with_parameter("assumes", "independent evidence, even prior")
+            .with_parameter(
+                "time_tolerance_ns",
+                alloc::format!("{}", config.time_tolerance.as_nanos()),
+            ),
+    ));
+
+    let mut observation = Observation::new(
+        id,
+        modality,
+        Property::new(first.property().as_str()),
+        ObservationValue::Boolean(claim),
+        confidence,
+        earliest,
+        provenance,
+    );
+    observation
+        .advance_to(ObservationState::Fused)
+        .map_err(|_| FusionError::StrategyFailed)?;
+
+    let disagreement = disagreement(inputs, &scalars, config.disagreement_threshold);
+    Ok(FusedObservation {
+        observation,
+        disagreement,
+    })
+}
+
 fn disagreement(
     inputs: &[Observation],
     scalars: &[ScalarInput],

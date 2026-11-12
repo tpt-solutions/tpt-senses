@@ -104,7 +104,7 @@ pub use entity::{AssociationConfig, EntityAssociation, EntityKind, associate};
 pub use event::{Event, EventKind, movement_event, threshold_event};
 pub use fusion::{
     ConfidenceWeighted, Disagreement, FusedObservation, FusionConfig, FusionError, FusionStrategy,
-    InverseVariance, ScalarInput, fuse,
+    InverseVariance, ScalarInput, fuse, fuse_presence,
 };
 pub use health::{CalibrationStatus, Diagnostics, SensorHealth};
 pub use id::{EntityId, MeasurementId, ObservationId, SensorId};
