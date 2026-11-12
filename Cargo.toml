@@ -14,9 +14,6 @@ edition = "2024"
 rust-version = "1.85"
 license = "MIT OR Apache-2.0"
 authors = ["TPT Solutions"]
-readme = "README.md"
-keywords = ["sensors", "perception", "observation", "fusion", "robotics"]
-categories = ["no-std", "science::robotics"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
