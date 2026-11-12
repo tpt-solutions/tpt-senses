@@ -1,6 +1,13 @@
 //! Phase 3 tests: perception pipeline, fusion, entity association, world state, internal sensing
 //! and event detection. Includes the spec's example: camera + `LiDAR` + radar + GPS → "Vehicle #27".
 
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    reason = "test arithmetic on small trial indices and a seeded PRNG"
+)]
+
 use tpt_senses::prelude::*;
 use tpt_senses::{
     Algorithm, AssociationConfig, CalibrationKind, CalibrationRecord, CalibrationStage,
