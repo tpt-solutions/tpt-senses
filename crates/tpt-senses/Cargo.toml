@@ -36,3 +36,9 @@ cbor4ii = { version = "1.2", default-features = false, features = ["serde1"], op
 
 [dev-dependencies]
 serde_json = "1"
+# Pinned to 0.7: criterion 0.8 needs Rust 1.86, above this crate's MSRV of 1.85.
+criterion = { version = "0.7", default-features = false }
+
+[[bench]]
+name = "streams"
+harness = false
