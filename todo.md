@@ -36,7 +36,7 @@ Legend: `[ ]` todo · `[x]` done · **(EXT)** = blocked on another TPT repo / ex
 - [x] GitHub Actions CI: fmt, clippy, test (default / no-default / all features), docs build, MSRV, cargo-deny (workflow written; not yet run on GitHub)
 - [x] CI: `no_std` build on a bare-metal target (e.g. `thumbv7em-none-eabihf`) (verified locally)
 - [x] CI: WASM build check (`wasm32-unknown-unknown`) §41 (verified locally)
-- [ ] CI: cargo-semver-checks / publish dry-run
+- [ ] CI: cargo-semver-checks / publish dry-run — `publish-dry-run` job added; semver-checks waits for a published baseline (after 0.1.0)
 - [x] Dependency audit: `futures-core`, `serde` and dev-only `serde_json` pass the licence policy (`cargo deny check`)
 - [ ] Reserve crate names on crates.io (`tpt-senses` + planned sub-crates)
 - [x] Create `tests/` directory and test layout (`crates/tpt-senses/tests/core_model.rs`)
@@ -128,7 +128,7 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
   - [ ] **(EXT)** Topic adapters: camera, LiDAR, IMU, GPS, force, custom
   - [ ] **(EXT)** ROS TF → spatial reference bridge §18
   - [ ] Decide whether `tpt-senses-ros` (ROS 1) is justified §8
-  - [ ] Check the ROS 2 Rust client licence (e.g. rclrs — Apache-2.0 only?) against the dependency policy; resolve conflicts or isolate/skip
+  - [x] Check the ROS 2 Rust client licence (e.g. rclrs — Apache-2.0 only?) against the dependency policy; resolve conflicts or isolate/skip — decided: rclrs is Apache-2.0 only, so ROS 2 is skipped for now and stays out of the policy-checked dependency tree until a consumer needs it
 - [ ] **Simulation:** `tpt-senses-sim` — deferred by decision; `Sensor` trait and `Origin::Simulated` already give simulators the same interface §30
 - [ ] **Record/replay:** `tpt-senses-record` — deferred by decision until a consumer exists; in-core `Recording` with seek, range and replay is done §29
   - [x] Storage-format-agnostic trait in core: `RecordSink` (on-disk format not yet); concrete format only in the record crate §29
@@ -147,9 +147,9 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Active-perception loop types: uncertainty → request additional information → sensor action → new observation §36
 - [x] Example: weed vs not-weed with a multispectral follow-up §36
 - [x] Attention-aware sensing interface (attention changes sensing rates/resolution) §35
-- [ ] **(EXT)** `tpt-anima` interface: observations/events/state out; attention hints in §35
-- [ ] **(EXT)** `tpt-thought` consumption interface; confirm no hardware knowledge needed §46, §59
-- [ ] **(EXT)** `tpt-eve` verification hooks: inspectable transformations, "why do we believe this?" §16, §47
+- [ ] **(EXT)** `tpt-anima` interface: observations/events/state out; attention hints in §35 — core side drafted in `ports` (`ObservationSink`, `AttentionSource`); the adapter itself waits on `tpt-anima`'s crate being published or pinned to git, and on mapping its `SensoryModality` onto `Modality`
+- [ ] **(EXT)** `tpt-thought` consumption interface; confirm no hardware knowledge needed §46, §59 — core side drafted in `ports` (`ObservationSink`, `AttentionSource`), which carry no hardware types; the adapter waits on `tpt-thought`'s intake API (v0.1.1, git-only)
+- [x] **(EXT)** `tpt-eve` verification hooks: inspectable transformations, "why do we believe this?" §16, §47 — `explain::explain` in core; `tpt-senses-eve` adapter converts observations to `tpt-eve-core` facts via `EveFactSink`, depending on `tpt-eve-core` 0.1.0 from crates.io
 - [x] Adaptive sensor selection (choose sensors by capability, health, uncertainty)
 - [x] Advanced multimodal fusion across modalities §38: `fuse_presence` pools detections from any modalities; general continuous value fusion across modalities is not yet built
 - [x] Sensory history export for reflection/sleep processing, without owning memory §46: `observations_between` is a read-only, clock-aware window
@@ -162,10 +162,10 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 - [x] Custom modality extensibility tests (e.g. gravitational, novel chemical signature) §52
 - [x] Full test suite: unit, integration, fusion, replay, fault §48: benchmarks not included
 - [x] Fault tests: missing sensors, sensor disagreement, sensor noise, and calibration failure §48
-- [ ] Benchmarks: criterion harness in `benches/streams.rs` (queue, reorder, fusion, pipeline, zero-copy clone). Allocation counts still not measured (needs an unsafe GlobalAlloc, which the workspace forbids); criterion is pinned to 0.7 for MSRV 1.85
+- [x] Benchmarks: criterion harness in `benches/streams.rs` (queue, reorder, fusion, pipeline, zero-copy clone). Allocation counts still not measured (needs an unsafe GlobalAlloc, which the workspace forbids); criterion is pinned to 0.7 for MSRV 1.85
 - [ ] Embedded checks: `no_std` on bare metal verified; binary size and an alloc-free subset not yet done §51
 - [x] WASM build verification §41
-- [ ] Rustdoc complete with examples; docs.rs config (metadata set; examples still to add to key types)
+- [x] Rustdoc examples on key types (`Observation`, `Measurement`, `Uncertainty`, `Confidence`, `Provenance`, `Timestamp`, `fuse`); docs.rs config (metadata set)
 - [x] DESIGN.md finalised for the current scope, with relationship diagram and API review; revisit at release
 - [x] Integration example for each of the spec §44 flows (camera, microphone, agri robot, radiation)
 - [x] Final dependency/licence audit (`cargo deny check`) for the current dependency set; repeat before release
@@ -192,5 +192,5 @@ Consume capabilities from existing repos rather than duplicating them §7. All i
 ## Open items / to confirm later
 - [x] Final workspace directory layout (root crate vs `crates/` folder)
 - [x] MSRV value (1.85)
-- [x] Which `tpt-*` repos are public/available and their licences: all four EXT repos and the other tpt-* repos are on github.com/tpt-solutions; only `tpt-cv-core`, `tpt-cv-feature` and `tpt-cv-geo` are published on crates.io (0.1.0, MIT OR Apache-2.0); the rest are MIT OR Apache-2.0 but unpublished
-- [ ] Whether the ROS 2 Rust bindings' licence passes the dependency policy
+- [x] Which `tpt-*` repos are public/available and their licences: all four EXT repos and the other tpt-* repos are on github.com/tpt-solutions; `tpt-cv-core`, `tpt-cv-feature`, `tpt-cv-geo` and `tpt-eve-core` are published on crates.io (0.1.0, MIT OR Apache-2.0); `tpt-anima` and `tpt-thought` are MIT OR Apache-2.0 but git-only; the audio, voice and agri repos are MIT OR Apache-2.0 but unpublished
+- [x] Whether the ROS 2 Rust bindings' licence passes the dependency policy: **no**. `rclrs` 0.8.0 on crates.io is Apache-2.0 only, which the policy forbids; ROS 2 needs a crate-scoped exception or an isolated adapter crate before it can be added
