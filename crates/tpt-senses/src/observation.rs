@@ -87,6 +87,7 @@ impl ObservationState {
 
 /// Returned when an observation is asked to move backwards or to its current stage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct LifecycleError {
     /// The current state.
     pub from: ObservationState,

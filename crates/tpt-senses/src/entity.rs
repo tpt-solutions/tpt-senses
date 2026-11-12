@@ -34,6 +34,7 @@ pub enum EntityKind {
 
 /// The evidence that a set of observations belongs to one entity.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct EntityAssociation {
     /// The entity the evidence is associated with.
     pub entity: EntityId,
@@ -65,11 +66,23 @@ impl EntityAssociation {
 
 /// Settings for [`associate`].
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct AssociationConfig {
     /// Maximum straight-line distance between a member and its group's first member.
     pub max_distance: f64,
     /// Maximum time gap between members of one group.
     pub time_tolerance: Duration,
+}
+
+impl AssociationConfig {
+    /// Settings for [`associate`].
+    #[must_use]
+    pub const fn new(max_distance: f64, time_tolerance: Duration) -> Self {
+        Self {
+            max_distance,
+            time_tolerance,
+        }
+    }
 }
 
 fn position_of(observation: &Observation) -> Option<(&CoordinateFrame, Point3)> {

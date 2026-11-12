@@ -152,12 +152,9 @@ fn weed_vs_not_weed_uses_active_perception_follow_up() {
     );
 
     // Step 2: the uncertainty triggers a request for a multispectral follow-up.
-    let suggestion = ParameterChangeRequest {
-        sensor: SensorId::new(2),
-        parameter: ParameterKind::SpectralBand,
-        value: 740.0,
-        reason: Some("separate weed from crop canopy".into()),
-    };
+    let suggestion =
+        ParameterChangeRequest::new(SensorId::new(2), ParameterKind::SpectralBand, 740.0)
+            .with_reason("separate weed from crop canopy");
     let request = information_request_for(
         first.id(),
         first.property().clone(),
@@ -170,18 +167,18 @@ fn weed_vs_not_weed_uses_active_perception_follow_up() {
 
     // Step 3: pick the multispectral sensor from the robot's sensors.
     let sensors = [
-        SensorCandidate {
-            sensor: SensorId::new(1),
-            capabilities: SensorCapabilities::new(vec![Modality::Visual]),
-            health: SensorHealth::Online,
-            noise: Some(0.05),
-        },
-        SensorCandidate {
-            sensor: SensorId::new(2),
-            capabilities: SensorCapabilities::new(vec![Modality::Multispectral]),
-            health: SensorHealth::Online,
-            noise: Some(0.1),
-        },
+        SensorCandidate::new(
+            SensorId::new(1),
+            SensorCapabilities::new(vec![Modality::Visual]),
+            SensorHealth::Online,
+            Some(0.05),
+        ),
+        SensorCandidate::new(
+            SensorId::new(2),
+            SensorCapabilities::new(vec![Modality::Multispectral]),
+            SensorHealth::Online,
+            Some(0.1),
+        ),
     ];
     assert_eq!(
         select_sensor(&sensors, &Modality::Multispectral),
@@ -192,10 +189,7 @@ fn weed_vs_not_weed_uses_active_perception_follow_up() {
     let rate = attention_sampling(
         Frequency::from_hz(2.0).unwrap(),
         Frequency::from_hz(20.0).unwrap(),
-        AttentionHint {
-            subject: None,
-            weight: conf(1.0),
-        },
+        AttentionHint::new(None, conf(1.0)),
     )
     .unwrap();
     assert_eq!(rate.hz(), 20.0);

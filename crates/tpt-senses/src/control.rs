@@ -40,6 +40,7 @@ pub enum ParameterKind {
 
 /// A request to change one parameter of one sensor. The sensor decides whether to comply.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct ParameterChangeRequest {
     /// The sensor to change.
     pub sensor: SensorId,
@@ -49,6 +50,26 @@ pub struct ParameterChangeRequest {
     pub value: f64,
     /// Why, in plain words, for logs and audits.
     pub reason: Option<String>,
+}
+
+impl ParameterChangeRequest {
+    /// A request to set `parameter` on `sensor` to `value`, with no reason recorded.
+    #[must_use]
+    pub const fn new(sensor: SensorId, parameter: ParameterKind, value: f64) -> Self {
+        Self {
+            sensor,
+            parameter,
+            value,
+            reason: None,
+        }
+    }
+
+    /// Records why the change is requested (builder style).
+    #[must_use]
+    pub fn with_reason(mut self, reason: impl Into<String>) -> Self {
+        self.reason = Some(reason.into());
+        self
+    }
 }
 
 /// What a sensor did with a [`ParameterChangeRequest`].
@@ -93,6 +114,7 @@ pub enum InformationNeed {
 ///
 /// Loop: uncertainty → this request → sensor action → new observation → fusion.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct InformationRequest {
     /// The observation that triggered the request.
     pub trigger: ObservationId,
@@ -131,11 +153,20 @@ pub fn information_request_for(
 ///
 /// Hints change sensing rates and resolution. They never change what counts as true.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct AttentionHint {
     /// The entity to attend to, or `None` for general attention.
     pub subject: Option<EntityId>,
     /// How much attention, from `0` (none) to `1` (maximum).
     pub weight: Confidence,
+}
+
+impl AttentionHint {
+    /// A hint with the given subject and weight.
+    #[must_use]
+    pub const fn new(subject: Option<EntityId>, weight: Confidence) -> Self {
+        Self { subject, weight }
+    }
 }
 
 /// Chooses a sampling frequency between `base` (no attention) and `max` (full attention).
@@ -155,6 +186,7 @@ pub fn attention_sampling(
 
 /// A sensor that could satisfy a need, as seen by the selector.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct SensorCandidate {
     /// The sensor.
     pub sensor: SensorId,
@@ -164,6 +196,24 @@ pub struct SensorCandidate {
     pub health: SensorHealth,
     /// Its current noise level (standard deviation), if known. Lower is better.
     pub noise: Option<f64>,
+}
+
+impl SensorCandidate {
+    /// A candidate sensor with its capabilities, health and known noise level.
+    #[must_use]
+    pub const fn new(
+        sensor: SensorId,
+        capabilities: SensorCapabilities,
+        health: SensorHealth,
+        noise: Option<f64>,
+    ) -> Self {
+        Self {
+            sensor,
+            capabilities,
+            health,
+            noise,
+        }
+    }
 }
 
 /// Picks the best sensor for a modality: it must support the modality and be operational, and

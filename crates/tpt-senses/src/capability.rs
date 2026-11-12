@@ -63,6 +63,7 @@ impl Resolution {
 
 /// Descriptive capabilities of a sensor. Every field is optional except the modality list.
 #[derive(Clone, Debug, Default, PartialEq)]
+#[non_exhaustive]
 pub struct SensorCapabilities {
     /// Modalities this sensor produces. A sensor may produce several.
     pub modalities: Vec<Modality>,
@@ -97,6 +98,7 @@ impl SensorCapabilities {
 
 /// Capabilities specific to imaging sensors.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct VisionCapability {
     /// Frame width in pixels.
     pub width: u32,
@@ -106,8 +108,21 @@ pub struct VisionCapability {
     pub channels: u8,
 }
 
+impl VisionCapability {
+    /// Frame dimensions and channel count of an imaging sensor.
+    #[must_use]
+    pub const fn new(width: u32, height: u32, channels: u8) -> Self {
+        Self {
+            width,
+            height,
+            channels,
+        }
+    }
+}
+
 /// Capabilities specific to audio sensors.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct AuditoryCapability {
     /// Sample rate.
     pub sample_rate: Frequency,
@@ -115,6 +130,18 @@ pub struct AuditoryCapability {
     pub channels: u16,
     /// Audible (or sensed) frequency range in hertz.
     pub frequency_range: Range,
+}
+
+impl AuditoryCapability {
+    /// Sample rate, channel count and frequency range of an audio sensor.
+    #[must_use]
+    pub const fn new(sample_rate: Frequency, channels: u16, frequency_range: Range) -> Self {
+        Self {
+            sample_rate,
+            channels,
+            frequency_range,
+        }
+    }
 }
 
 #[cfg(test)]

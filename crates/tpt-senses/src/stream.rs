@@ -17,6 +17,7 @@ use crate::{ClockMismatch, ClockSource, Duration, Timestamp};
 
 /// A value tagged with the time it describes.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Sample<T> {
     /// When the value was acquired.
     pub timestamp: Timestamp,

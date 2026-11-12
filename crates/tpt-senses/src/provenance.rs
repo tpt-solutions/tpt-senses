@@ -25,6 +25,7 @@ pub enum Origin {
 /// A processing algorithm and the parameters it was run with.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
 pub struct Algorithm {
     /// Algorithm name, e.g. `detector`.
     pub name: String,

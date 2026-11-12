@@ -148,10 +148,7 @@ fn range_reading(
 
 #[test]
 fn fusion_of_two_sensors_preserves_both_in_provenance() {
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(5),
-        disagreement_threshold: 1.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(5), 1.0);
     let lidar = range_reading(10, 1, 25.00, Some(0.02), mono(0));
     let radar = range_reading(11, 2, 25.30, Some(0.5), mono(1_000_000));
     let fused = fuse(
@@ -174,10 +171,7 @@ fn fusion_of_two_sensors_preserves_both_in_provenance() {
 
 #[test]
 fn fusion_fault_sensor_disagreement_names_the_outlier() {
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(5),
-        disagreement_threshold: 2.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(5), 2.0);
     let a = range_reading(20, 1, 10.0, None, mono(0));
     let b = range_reading(21, 2, 10.1, None, mono(0));
     let c = range_reading(22, 3, 17.0, None, mono(0)); // faulty sensor
@@ -194,10 +188,7 @@ fn fusion_fault_sensor_disagreement_names_the_outlier() {
 
 #[test]
 fn fusion_refuses_inputs_that_are_not_simultaneous() {
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(1),
-        disagreement_threshold: 1.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(1), 1.0);
     let a = range_reading(30, 1, 5.0, None, mono(0));
     let b = range_reading(31, 2, 5.0, None, mono(500_000_000));
     assert_eq!(
@@ -220,10 +211,7 @@ impl FusionStrategy for Clamped {
 
 #[test]
 fn custom_fusion_strategy_is_used_and_recorded() {
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(1),
-        disagreement_threshold: 1000.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(1), 1000.0);
     let inputs = [
         range_reading(40, 1, 150.0, None, mono(0)),
         range_reading(41, 2, 130.0, None, mono(0)),
@@ -303,10 +291,7 @@ fn camera_lidar_radar_gps_resolve_to_vehicle_27() {
     );
 
     let observations = [camera_world, lidar, radar, gps, unrelated];
-    let cfg = AssociationConfig {
-        max_distance: 2.0,
-        time_tolerance: Duration::from_millis(10),
-    };
+    let cfg = AssociationConfig::new(2.0, Duration::from_millis(10));
     let entities = associate(&observations, &EntityKind::Vehicle, EntityId::new(27), &cfg);
 
     let vehicle = entities
@@ -381,10 +366,7 @@ fn world_state_is_derived_from_observations() {
     );
 
     let observations = [vehicle_obs, temp, air, pose, meta];
-    let cfg = AssociationConfig {
-        max_distance: 2.0,
-        time_tolerance: Duration::from_millis(1),
-    };
+    let cfg = AssociationConfig::new(2.0, Duration::from_millis(1));
     let assoc = associate(&observations, &EntityKind::Vehicle, EntityId::new(27), &cfg);
     let world = WorldState::derive(&observations, &assoc);
 
@@ -554,10 +536,7 @@ impl Rng {
 fn fusing_noisy_sensors_beats_the_noisy_imprecise_one() {
     let truth = 25.0;
     let (sigma_precise, sigma_coarse) = (0.05, 0.8);
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(1),
-        disagreement_threshold: 100.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(1), 100.0);
     let mut rng = Rng(0x9E37_79B9_7F4A_7C15);
 
     let (mut err_coarse, mut err_fused) = (0.0, 0.0);
@@ -631,10 +610,7 @@ fn detection(
 }
 
 fn presence_cfg() -> FusionConfig {
-    FusionConfig {
-        time_tolerance: Duration::from_millis(5),
-        disagreement_threshold: 0.5,
-    }
+    FusionConfig::new(Duration::from_millis(5), 0.5)
 }
 
 #[test]
@@ -706,28 +682,25 @@ fn certain_contradictory_evidence_stays_finite() {
 fn faulted_sensors_are_skipped_when_selecting_a_source() {
     let caps = SensorCapabilities::new(vec![Modality::Thermal]);
     let candidates = [
-        SensorCandidate {
-            sensor: SensorId::new(1),
-            capabilities: caps.clone(),
-            health: SensorHealth::Faulted,
-            noise: Some(0.01),
-        },
-        SensorCandidate {
-            sensor: SensorId::new(2),
-            capabilities: caps.clone(),
-            health: SensorHealth::Offline,
-            noise: Some(0.01),
-        },
+        SensorCandidate::new(
+            SensorId::new(1),
+            caps.clone(),
+            SensorHealth::Faulted,
+            Some(0.01),
+        ),
+        SensorCandidate::new(
+            SensorId::new(2),
+            caps.clone(),
+            SensorHealth::Offline,
+            Some(0.01),
+        ),
     ];
     assert_eq!(select_sensor(&candidates, &Modality::Thermal), None);
 }
 
 #[test]
 fn fusion_still_works_when_one_of_two_sensors_is_missing() {
-    let cfg = FusionConfig {
-        time_tolerance: Duration::from_millis(1),
-        disagreement_threshold: 1.0,
-    };
+    let cfg = FusionConfig::new(Duration::from_millis(1), 1.0);
     let surviving = range_reading(60, 1, 12.0, Some(0.2), mono(0));
     let fused = fuse(&[surviving], ObservationId::new(14), &InverseVariance, &cfg).unwrap();
     assert_eq!(

@@ -42,6 +42,7 @@ pub trait Stage {
 
 /// What one stage did during a pipeline run.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct StageRecord {
     /// The algorithm the stage ran.
     pub algorithm: Algorithm,
@@ -55,6 +56,7 @@ pub struct StageRecord {
 
 /// A successful pipeline run.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct PipelineOutput {
     /// The processed observation.
     pub observation: Observation,
@@ -64,6 +66,7 @@ pub struct PipelineOutput {
 
 /// A pipeline run that was stopped by a stage.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct PipelineError {
     /// Name of the algorithm that rejected the observation.
     pub stage: String,

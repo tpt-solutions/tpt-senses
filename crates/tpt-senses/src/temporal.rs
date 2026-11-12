@@ -9,6 +9,7 @@ use crate::{ClockMismatch, Duration, Observation, Timestamp};
 
 /// The timestamps that describe one piece of data as it moves through the system.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct TimingInfo {
     /// When the sensor acquired the data.
     pub acquired: Timestamp,

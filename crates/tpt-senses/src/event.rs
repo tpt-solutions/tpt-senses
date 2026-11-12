@@ -41,6 +41,7 @@ pub enum EventKind {
 
 /// A detected event.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Event {
     /// What happened.
     pub kind: EventKind,

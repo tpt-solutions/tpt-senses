@@ -20,6 +20,7 @@ use crate::{
 
 /// One scalar input to a fusion strategy.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct ScalarInput {
     /// The measured value.
     pub value: f64,
@@ -106,6 +107,7 @@ impl FusionStrategy for InverseVariance {
 
 /// Settings for one fusion call.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct FusionConfig {
     /// Inputs further apart in time than this are refused.
     pub time_tolerance: Duration,
@@ -113,8 +115,20 @@ pub struct FusionConfig {
     pub disagreement_threshold: f64,
 }
 
+impl FusionConfig {
+    /// Settings for one fusion call.
+    #[must_use]
+    pub const fn new(time_tolerance: Duration, disagreement_threshold: f64) -> Self {
+        Self {
+            time_tolerance,
+            disagreement_threshold,
+        }
+    }
+}
+
 /// A sensor whose value disagreed with the fused result.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Disagreement {
     /// Largest difference between any two inputs.
     pub spread: f64,
@@ -124,6 +138,7 @@ pub struct Disagreement {
 
 /// A fused observation and any disagreement found among its inputs.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct FusedObservation {
     /// The fused observation, in the [`ObservationState::Fused`] state.
     pub observation: Observation,
@@ -291,10 +306,7 @@ const EPS: f64 = 1e-6;
 ///         Provenance::new(Origin::Real).with_step(ProvenanceStep::Sensor(SensorId::new(id))),
 ///     )
 /// };
-/// let config = FusionConfig {
-///     time_tolerance: Duration::from_millis(5),
-///     disagreement_threshold: 0.5,
-/// };
+/// let config = FusionConfig::new(Duration::from_millis(5), 0.5);
 /// let fused = fuse_presence(
 ///     &[detect(1, Modality::Visual, 0.7), detect(2, Modality::Thermal, 0.6)],
 ///     ObservationId::new(9),

@@ -31,6 +31,7 @@ pub enum CoordinateFrame {
 /// A position together with the frame it is expressed in.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
 pub struct SpatialReference {
     /// The frame of `position`.
     pub frame: CoordinateFrame,

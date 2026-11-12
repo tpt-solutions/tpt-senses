@@ -27,6 +27,7 @@ pub enum CalibrationKind {
 /// One calibration applied to a sensor at a point in time.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
 pub struct CalibrationRecord {
     /// What was calibrated.
     pub kind: CalibrationKind,

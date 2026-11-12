@@ -92,6 +92,7 @@ impl Timestamp {
 /// Returned when two timestamps from different clocks are combined where a single clock is
 /// required.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct ClockMismatch {
     /// Clock the operation expected.
     pub expected: ClockSource,

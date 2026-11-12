@@ -214,6 +214,7 @@ impl MeasurementValue {
 /// A single measurement from one sensor at one time.
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
 pub struct Measurement {
     /// The sensor that produced this measurement.
     pub sensor: SensorId,
