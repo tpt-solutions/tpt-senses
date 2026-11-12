@@ -174,7 +174,7 @@ mod tests {
 
         let taken = sink.take_facts();
         assert_eq!(taken.len(), 2);
-        assert!(sink.facts().is_empty());
+        assert_eq!(sink.facts().len(), 0);
     }
 
     #[test]
